@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Login to Blujay Technologies - Access your courses and placement opportunities">
+    <title>Login - Blujay Technologies</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        * {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        body {
+            margin: 0;
+            padding: 0;
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #2563eb;
+            border-radius: 4px;
+        }
+        
+        /* Decorative circles */
+        .decorative-circle {
+            position: absolute;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .circle-1 {
+            width: 600px;
+            height: 600px;
+            right: -150px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        .circle-2 {
+            width: 400px;
+            height: 400px;
+            right: 100px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        /* Badge hover animation */
+        .stat-badge {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .stat-badge:hover {
+            transform: scale(1.05);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    
+    <!-- Navbar - UPDATED (Request Callback moved to mobile menu) -->
+<nav class="fixed w-full top-0 z-50 bg-white shadow-sm">
+    <div class="px-4 lg:px-8">
+        <div class="flex justify-between items-center h-[60px] lg:h-[72px]">
+            <!-- Logo -->
+            <a href="index.html" class="flex items-center">
+                <img src="logo.png" alt="Blujay Technologies" class="h-10 lg:h-12 w-auto" loading="lazy">
+            </a>
+            
+            <!-- Desktop Menu -->
+            <div class="hidden lg:flex items-center gap-8 ml-auto">
+                <a href="index.html#courses" class="text-[14px] font-medium text-gray-700 hover:text-blue-600 transition-colors">Courses</a>
+                <a href="index.html#centres" class="text-[14px] font-medium text-gray-700 hover:text-blue-600 transition-colors">Centres</a>
+                <a href="index.html#jobs" class="text-[14px] font-medium text-gray-700 hover:text-blue-600 transition-colors">Jobs</a>
+                
+                <div class="relative" id="desktop-more">
+                    <button id="desktop-more-btn" class="text-[14px] font-medium text-gray-700 hover:text-blue-600 transition-colors flex items-center gap-1">
+                        More <i class="fas fa-chevron-down text-[9px]"></i>
+                    </button>
+                    <div id="desktop-more-menu" class="hidden absolute top-full right-0 mt-2 w-40 bg-white rounded-lg shadow-lg border py-1">
+                        <a href="index.html#about" class="block px-4 py-2 text-[13px] text-gray-700 hover:bg-blue-50 transition-colors">About Us</a>
+                        <a href="index.html#blog" class="block px-4 py-2 text-[13px] text-gray-700 hover:bg-blue-50 transition-colors">Blog</a>
+                    </div>
+                </div>
+                
+                <a href="login.html" class="border-2 border-blue-600 text-blue-600 px-4 py-1.5 rounded-lg text-[13px] font-semibold hover:bg-blue-50 transition-all">Login</a>
+                <button class="bg-blue-600 text-white px-4 py-2 rounded-lg text-[13px] font-semibold hover:bg-blue-700 transition-all flex items-center gap-2">
+                    <i class="fas fa-phone-alt text-[10px]"></i> Request Callback
+                </button>
+            </div>
+            
+            <!-- Mobile: ONLY Hamburger (Request Callback REMOVED) -->
+            <div class="flex lg:hidden items-center">
+                <button id="mobile-toggle" class="w-10 h-10 flex items-center justify-center hover:bg-gray-100 rounded-lg transition-all">
+                    <i class="fas fa-bars text-[22px] text-gray-900"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Mobile Menu - UPDATED (Request Callback button added) -->
+    <div id="mobile-menu" class="fixed inset-0 bg-white z-[100] transform translate-x-full transition-transform duration-300 lg:hidden">
+        <div class="flex justify-between items-center h-[60px] px-4 border-b">
+            <img src="logo.png" alt="Blujay Technologies" class="h-10" loading="lazy">
+            <button id="mobile-close" class="w-10 h-10 flex items-center justify-center hover:bg-gray-100 rounded-lg transition-all">
+                <i class="fas fa-times text-[24px] text-gray-800"></i>
+            </button>
+        </div>
+        
+        <div class="overflow-y-auto h-[calc(100vh-60px)]">
+            <div class="px-4 py-4">
+                <a href="index.html#courses" class="block text-[15px] font-semibold text-gray-900 py-3 border-b hover:text-blue-600 transition-colors">Courses</a>
+                <a href="index.html#centres" class="block text-[15px] font-medium text-gray-800 py-3 border-b hover:text-blue-600 transition-colors">Centres</a>
+                <a href="index.html#jobs" class="block text-[15px] font-medium text-gray-800 py-3 border-b hover:text-blue-600 transition-colors">Jobs</a>
+                
+                <div class="border-b">
+                    <button id="mobile-more" class="w-full flex justify-between items-center text-[15px] font-medium text-gray-800 py-3 hover:text-blue-600 transition-colors">
+                        More <i class="fas fa-chevron-down text-[11px] mobile-arrow transition-transform"></i>
+                    </button>
+                    <div id="mobile-more-content" class="hidden pb-2">
+                        <a href="index.html#about" class="block text-[14px] text-gray-600 py-2 pl-6 hover:text-blue-600 transition-colors">About Us</a>
+                        <a href="index.html#blog" class="block text-[14px] text-gray-600 py-2 pl-6 hover:text-blue-600 transition-colors">Blog</a>
+                    </div>
+                </div>
+                
+                <!-- Request Callback Button - NEW POSITION -->
+                <button class="block w-full text-center bg-blue-600 text-white py-2.5 rounded-lg text-[14px] font-semibold mt-6 hover:bg-blue-700 transition-all shadow-md">
+                    Request Callback
+                </button>
+                
+                <!-- Login Button -->
+                <a href="login.html" class="block w-full text-center border-2 border-blue-600 text-blue-600 py-2.5 rounded-lg text-[14px] font-semibold mt-3 hover:bg-blue-50 transition-all">Login</a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+    
+    <!-- Login Content - OPTIMIZED -->
+    <div class="min-h-screen flex pt-[76px] lg:pt-[88px]">
+        <!-- Left Side - Login Form -->
+        <div class="w-full lg:w-1/2 flex items-center justify-center p-6 lg:p-12">
+            <div class="w-full max-w-md">
+                <!-- Logo Section (Hidden on mobile as it's in navbar) -->
+                <div class="mb-8 lg:mb-10 hidden lg:block">
+                    <img src="logo.png" alt="Blujay Technologies" class="h-12 w-auto object-contain" loading="lazy">
+                </div>
+                
+                <!-- Welcome Text -->
+                <div class="mb-6 lg:mb-8">
+                    <h2 class="text-[15px] lg:text-[16px] text-gray-600 mb-2 font-normal">Welcome back</h2>
+                    <h1 class="text-[24px] lg:text-[26px] font-bold text-gray-900 leading-tight">Login with your mobile no.</h1>
+                </div>
+                
+                <!-- Login Form -->
+                <form id="login-form" class="space-y-5">
+                    <!-- Phone Number Input -->
+                    <div>
+                        <label for="phone" class="block text-[14px] font-semibold text-gray-900 mb-3">Phone Number</label>
+                        <div class="flex gap-0">
+                            <!-- Country Code Dropdown -->
+                            <div class="relative">
+                                <select class="h-[48px] lg:h-[50px] pl-4 pr-10 bg-white border border-r-0 border-gray-300 rounded-l-lg text-[14px] lg:text-[15px] font-medium text-gray-900 appearance-none cursor-pointer focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100 transition-all">
+                                    <option value="+91">+91</option>
+                                    <option value="+1">+1</option>
+                                    <option value="+44">+44</option>
+                                </select>
+                                <i class="fas fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-[11px] text-gray-500 pointer-events-none"></i>
+                            </div>
+                            
+                            <!-- Phone Input -->
+                            <input 
+                                type="tel" 
+                                id="phone" 
+                                placeholder="Enter Phone No." 
+                                maxlength="10"
+                                class="flex-1 h-[48px] lg:h-[50px] px-4 bg-white border border-gray-300 rounded-r-lg text-[14px] lg:text-[15px] text-gray-900 placeholder-gray-400 focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100 transition-all"
+                                required
+                            >
+                        </div>
+                    </div>
+                    
+                    <!-- Login Button -->
+                    <button 
+                        type="submit" 
+                        class="w-full h-[48px] lg:h-[50px] bg-blue-600 text-white text-[14px] lg:text-[15px] font-semibold rounded-lg hover:bg-blue-700 active:scale-98 transition-all shadow-md hover:shadow-lg"
+                    >
+                        Login
+                    </button>
+                </form>
+                
+                <!-- Divider -->
+                <div class="flex items-center gap-4 my-6">
+                    <div class="flex-1 h-[1px] bg-gray-300"></div>
+                    <span class="text-[13px] lg:text-[14px] text-gray-500 font-normal">OR</span>
+                    <div class="flex-1 h-[1px] bg-gray-300"></div>
+                </div>
+                
+                <!-- Social Login -->
+                <div class="mb-6">
+                    <p class="text-[13px] lg:text-[14px] text-gray-600 font-normal mb-4">Login With</p>
+                    <div class="grid grid-cols-2 gap-3 lg:gap-4">
+                        <!-- Email Login -->
+                        <button class="h-[48px] lg:h-[50px] flex items-center justify-center gap-2 bg-white border border-gray-300 rounded-lg text-[12px] lg:text-[13px] font-semibold text-gray-700 hover:border-blue-600 hover:bg-blue-50 transition-all uppercase">
+                            <i class="far fa-envelope text-[15px] lg:text-[16px]"></i>
+                            USE EMAIL
+                        </button>
+                        
+                        <!-- Google Login -->
+                        <button class="h-[48px] lg:h-[50px] flex items-center justify-center gap-2 bg-white border border-gray-300 rounded-lg text-[12px] lg:text-[13px] font-semibold text-gray-700 hover:border-gray-400 hover:shadow-md transition-all uppercase">
+                            <svg class="w-4 h-4 lg:w-5 lg:h-5" viewBox="0 0 24 24">
+                                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                            </svg>
+                            GOOGLE
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Create Account Link -->
+                <div class="text-center">
+                    <p class="text-[13px] lg:text-[14px] text-gray-600">
+                        Don't have an account? 
+                        <a href="#" class="text-blue-600 font-semibold hover:underline transition-all">Create new account</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Right Side - Hero Section (Hidden on Mobile) -->
+        <div class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-[#002d6b] via-[#003d7a] to-[#004080] relative overflow-hidden">
+            <!-- Decorative Circles -->
+            <div class="decorative-circle circle-1"></div>
+            <div class="decorative-circle circle-2"></div>
+            
+            <!-- Content Container -->
+            <div class="w-full h-full flex flex-col justify-start pt-16 px-12 relative z-10">
+                <!-- Heading -->
+                <div class="mb-8">
+                    <h2 class="text-white text-[40px] lg:text-[44px] font-bold mb-3 leading-tight">
+                        Get placed in top companies
+                    </h2>
+                    <p class="text-white text-[17px] lg:text-[18px] font-normal opacity-90 leading-relaxed">
+                        Learn from India's top Instructors to reach your full potential with Blujay Technologies
+                    </p>
+                </div>
+                
+                <!-- Carousel Dots -->
+                <div class="flex gap-2 mb-12">
+                    <div class="w-8 h-2 rounded-full bg-white transition-all"></div>
+                    <div class="w-2 h-2 rounded-full bg-white opacity-40 transition-all"></div>
+                    <div class="w-2 h-2 rounded-full bg-white opacity-40 transition-all"></div>
+                </div>
+                
+                <!-- Student Image with Stats Badges -->
+                <div class="relative flex-1 flex items-end justify-center">
+                    <div class="relative mb-0">
+                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&h=700&fit=crop" alt="Success Story" class="h-[480px] lg:h-[500px] w-auto object-cover object-top" loading="lazy">
+                        
+                        <!-- Stats Badges -->
+                        <div class="stat-badge absolute top-20 left-[-80px] bg-white rounded-2xl shadow-xl px-5 py-3 flex items-center gap-3">
+                            <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                                <i class="fas fa-check-circle text-green-600 text-[18px]"></i>
+                            </div>
+                            <div>
+                                <div class="text-[22px] font-bold text-gray-900">100%</div>
+                                <div class="text-[12px] text-gray-600 font-medium whitespace-nowrap">Job Assistance</div>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-badge absolute top-16 right-[-100px] bg-white rounded-2xl shadow-xl px-5 py-3 flex items-center gap-3">
+                            <div class="w-10 h-10 bg-pink-100 rounded-full flex items-center justify-center">
+                                <i class="fas fa-wallet text-pink-600 text-[18px]"></i>
+                            </div>
+                            <div>
+                                <div class="text-[22px] font-bold text-gray-900">41 LPA</div>
+                                <div class="text-[12px] text-gray-600 font-medium whitespace-nowrap">Highest Salary</div>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-badge absolute bottom-28 left-[-80px] bg-white rounded-2xl shadow-xl px-5 py-3 flex items-center gap-3">
+                            <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                <i class="fas fa-money-bill-wave text-blue-600 text-[18px]"></i>
+                            </div>
+                            <div>
+                                <div class="text-[22px] font-bold text-gray-900">7.2 LPA</div>
+                                <div class="text-[12px] text-gray-600 font-medium whitespace-nowrap">Average Salary</div>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-badge absolute bottom-20 right-[-100px] bg-white rounded-2xl shadow-xl px-5 py-3 flex items-center gap-3">
+                            <div class="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
+                                <i class="fas fa-building text-orange-600 text-[18px]"></i>
+                            </div>
+                            <div>
+                                <div class="text-[22px] font-bold text-gray-900">450+</div>
+                                <div class="text-[12px] text-gray-600 font-medium whitespace-nowrap">Partner Companies</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Mobile Menu Toggle
+        const mobileToggle = document.getElementById('mobile-toggle');
+        const mobileClose = document.getElementById('mobile-close');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const body = document.body;
+
+        if (mobileToggle) {
+            mobileToggle.addEventListener('click', () => {
+                mobileMenu.classList.remove('translate-x-full');
+                body.style.overflow = 'hidden';
+            });
+        }
+
+        if (mobileClose) {
+            mobileClose.addEventListener('click', () => {
+                mobileMenu.classList.add('translate-x-full');
+                body.style.overflow = 'auto';
+            });
+        }
+
+        // Close menu when clicking on links
+        document.querySelectorAll('#mobile-menu a').forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.add('translate-x-full');
+                body.style.overflow = 'auto';
+            });
+        });
+
+        // Mobile More Dropdown
+        const mobileMore = document.getElementById('mobile-more');
+        const mobileMoreContent = document.getElementById('mobile-more-content');
+        const mobileArrow = document.querySelector('.mobile-arrow');
+
+        if (mobileMore && mobileMoreContent) {
+            mobileMore.addEventListener('click', () => {
+                mobileMoreContent.classList.toggle('hidden');
+                if (mobileArrow) {
+                    mobileArrow.style.transform = mobileMoreContent.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
+                }
+            });
+        }
+
+        // Desktop More Dropdown
+        const desktopMoreBtn = document.getElementById('desktop-more-btn');
+        const desktopMoreMenu = document.getElementById('desktop-more-menu');
+
+        if (desktopMoreBtn) {
+            desktopMoreBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                desktopMoreMenu.classList.toggle('hidden');
+            });
+            
+            document.addEventListener('click', () => {
+                desktopMoreMenu.classList.add('hidden');
+            });
+        }
+
+        // Phone number validation
+        const phoneInput = document.getElementById('phone');
+        const loginForm = document.getElementById('login-form');
+        
+        phoneInput.addEventListener('input', function(e) {
+            this.value = this.value.replace(/[^0-9]/g, '');
+            if (this.value.length > 10) {
+                this.value = this.value.slice(0, 10);
+            }
+        });
+        
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const phone = phoneInput.value;
+            
+            if (phone.length !== 10) {
+                alert('Please enter a valid 10-digit phone number');
+                phoneInput.focus();
+                return;
+            }
+            
+            console.log('Login with phone:', phone);
+            alert('OTP will be sent to your phone number: +91 ' + phone);
+        });
+
+        // Carousel auto-rotation
+        const carouselDots = document.querySelectorAll('.flex.gap-2 > div');
+        let currentSlide = 0;
+        
+        setInterval(() => {
+            if (carouselDots.length > 0) {
+                carouselDots[currentSlide].classList.remove('w-8');
+                carouselDots[currentSlide].classList.add('w-2', 'opacity-40');
+                
+                currentSlide = (currentSlide + 1) % carouselDots.length;
+                
+                carouselDots[currentSlide].classList.remove('w-2', 'opacity-40');
+                carouselDots[currentSlide].classList.add('w-8');
+            }
+        }, 5000);
+
+        console.log('✅ Blujay Technologies - Login Page - Navbar Matched!');
+    </script>
+</body>
+</html>
