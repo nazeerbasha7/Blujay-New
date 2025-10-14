@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Blujay Technologies</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    
+    <style>
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            background: #f9fafb;
+        }
+    </style>
+</head>
+<body>
+    
+    <!-- Header with Profile Dropdown -->
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo -->
+                <a href="dashboard.html" class="flex items-center">
+                    <img src="logo.png" alt="Blujay" class="h-10 w-auto">
+                </a>
+                
+                <!-- Search Bar (Desktop) -->
+                <div class="hidden lg:flex flex-1 max-w-lg mx-8">
+                    <div class="relative w-full">
+                        <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                        <input 
+                            type="text" 
+                            placeholder="Search courses..." 
+                            class="w-full h-11 pl-12 pr-4 bg-gray-50 border-0 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                    </div>
+                </div>
+                
+                <!-- Right Side Actions -->
+                <div class="flex items-center gap-3">
+                    <!-- Doubt Solver Button -->
+                    <button class="hidden lg:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg text-sm font-semibold hover:shadow-lg transition-all">
+                        <i class="fas fa-question-circle"></i>
+                        <span>Doubt Solver</span>
+                    </button>
+                    
+                    <!-- Profile Dropdown Button -->
+                    <div class="relative">
+                        <button id="profile-btn" class="flex items-center gap-3 hover:bg-gray-50 px-3 py-2 rounded-lg transition-all">
+                            <img id="user-photo" src="https://randomuser.me/api/portraits/men/32.jpg" alt="Profile" class="w-9 h-9 rounded-full object-cover border-2 border-blue-500">
+                            <div class="hidden lg:block text-left">
+                                <p class="text-sm font-semibold text-gray-900" id="user-name-header">Nazeer Basha</p>
+                                <p class="text-xs text-gray-500">Student</p>
+                            </div>
+                            <i class="fas fa-chevron-down text-xs text-gray-500 hidden lg:block"></i>
+                        </button>
+                        
+                        <!-- Dropdown Menu (Hidden by default) -->
+                        <div id="profile-dropdown" class="hidden absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-gray-100 py-2 z-50">
+                            <!-- User Info in Dropdown -->
+                            <div class="px-4 py-3 border-b border-gray-100">
+                                <p class="text-sm font-semibold text-gray-900" id="user-name-dropdown">Nazeer Basha</p>
+                                <p class="text-xs text-gray-500" id="user-email">nazeer@gmail.com</p>
+                            </div>
+                            
+                            <!-- My Profile Link -->
+                            <a href="profile.html" class="flex items-center gap-3 px-4 py-3 hover:bg-blue-50 transition-all">
+                                <div class="w-9 h-9 bg-blue-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-user text-blue-600"></i>
+                                </div>
+                                <span class="text-sm font-medium text-gray-700">My Profile</span>
+                            </a>
+                            
+                            <!-- My Learning Link -->
+                            <a href="my-learning.html" class="flex items-center gap-3 px-4 py-3 hover:bg-blue-50 transition-all">
+                                <div class="w-9 h-9 bg-green-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-book text-green-600"></i>
+                                </div>
+                                <span class="text-sm font-medium text-gray-700">My Learning</span>
+                            </a>
+                            
+                            <!-- Doubt Solver (Mobile) -->
+                            <a href="doubts.html" class="flex lg:hidden items-center gap-3 px-4 py-3 hover:bg-blue-50 transition-all">
+                                <div class="w-9 h-9 bg-purple-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-question-circle text-purple-600"></i>
+                                </div>
+                                <span class="text-sm font-medium text-gray-700">Doubt Solver</span>
+                            </a>
+                            
+                            <div class="border-t border-gray-100 my-2"></div>
+                            
+                            <!-- Logout Button -->
+                            <button id="logout-btn" class="w-full flex items-center gap-3 px-4 py-3 hover:bg-red-50 transition-all">
+                                <div class="w-9 h-9 bg-red-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-sign-out-alt text-red-600"></i>
+                                </div>
+                                <span class="text-sm font-medium text-red-600">Logout</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 lg:px-8 py-8">
+        
+        <!-- Welcome Section -->
+        <div class="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-8 mb-8 text-white">
+            <h1 class="text-3xl font-bold mb-2">Welcome back, <span id="welcome-name">Nazeer</span>! 👋</h1>
+            <p class="text-blue-100 text-lg">Continue your learning journey and achieve your goals</p>
+        </div>
+        
+        <!-- Quick Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <!-- Enrolled Courses -->
+            <div class="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-all">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-book text-blue-600 text-xl"></i>
+                    </div>
+                    <span class="text-2xl font-bold text-gray-900">0</span>
+                </div>
+                <p class="text-sm text-gray-600 font-medium">Enrolled Courses</p>
+            </div>
+            
+            <!-- Certificates -->
+            <div class="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-all">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-certificate text-green-600 text-xl"></i>
+                    </div>
+                    <span class="text-2xl font-bold text-gray-900">0</span>
+                </div>
+                <p class="text-sm text-gray-600 font-medium">Certificates</p>
+            </div>
+            
+            <!-- Learning Hours -->
+            <div class="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-all">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-clock text-purple-600 text-xl"></i>
+                    </div>
+                    <span class="text-2xl font-bold text-gray-900">0h</span>
+                </div>
+                <p class="text-sm text-gray-600 font-medium">Learning Hours</p>
+            </div>
+            
+            <!-- Achievements -->
+            <div class="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-all">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-trophy text-orange-600 text-xl"></i>
+                    </div>
+                    <span class="text-2xl font-bold text-gray-900">0</span>
+                </div>
+                <p class="text-sm text-gray-600 font-medium">Achievements</p>
+            </div>
+        </div>
+        
+        <!-- Course Categories -->
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-2xl font-bold text-gray-900">Explore Courses</h2>
+            <div class="flex gap-2">
+                <button class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold">All</button>
+                <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-200">Full Stack</button>
+                <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-200">Data Science</button>
+                <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-200">Cloud</button>
+            </div>
+        </div>
+        
+        <!-- Course Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            
+            <!-- Course Card 1 -->
+            <div class="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all cursor-pointer">
+                <div class="relative">
+                    <img src="https://images.unsplash.com/photo-1593720213428-28a5b9e94613?w=400&h=250&fit=crop" alt="Course" class="w-full h-48 object-cover">
+                    <div class="absolute top-3 right-3 bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-bold">
+                        ₹4,999
+                    </div>
+                </div>
+                <div class="p-5">
+                    <h3 class="text-lg font-bold text-gray-900 mb-2">MERN Full Stack Development</h3>
+                    <p class="text-sm text-gray-600 mb-4 line-clamp-2">Master MongoDB, Express, React, and Node.js with hands-on projects</p>
+                    
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-1">
+                            <i class="fas fa-star text-yellow-400 text-sm"></i>
+                            <span class="text-sm font-semibold text-gray-900">4.8</span>
+                            <span class="text-xs text-gray-500">(1,234)</span>
+                        </div>
+                        <span class="text-xs text-gray-500">
+                            <i class="far fa-clock"></i> 8 months
+                        </span>
+                    </div>
+                    
+                    <button class="w-full bg-blue-600 text-white py-2.5 rounded-lg font-semibold hover:bg-blue-700 transition-all">
+                        Enroll Now
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Course Card 2 -->
+            <div class="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all cursor-pointer">
+                <div class="relative">
+                    <img src="https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=400&h=250&fit=crop" alt="Course" class="w-full h-48 object-cover">
+                    <div class="absolute top-3 right-3 bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-bold">
+                        ₹5,999
+                    </div>
+                </div>
+                <div class="p-5">
+                    <h3 class="text-lg font-bold text-gray-900 mb-2">Java Full Stack with Spring Boot</h3>
+                    <p class="text-sm text-gray-600 mb-4 line-clamp-2">Learn Java, Spring Boot, Hibernate, and microservices architecture</p>
+                    
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-1">
+                            <i class="fas fa-star text-yellow-400 text-sm"></i>
+                            <span class="text-sm font-semibold text-gray-900">4.9</span>
+                            <span class="text-xs text-gray-500">(987)</span>
+                        </div>
+                        <span class="text-xs text-gray-500">
+                            <i class="far fa-clock"></i> 8 months
+                        </span>
+                    </div>
+                    
+                    <button class="w-full bg-blue-600 text-white py-2.5 rounded-lg font-semibold hover:bg-blue-700 transition-all">
+                        Enroll Now
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Course Card 3 -->
+            <div class="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all cursor-pointer">
+                <div class="relative">
+                    <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=250&fit=crop" alt="Course" class="w-full h-48 object-cover">
+                    <div class="absolute top-3 right-3 bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-bold">
+                        ₹6,999
+                    </div>
+                </div>
+                <div class="p-5">
+                    <h3 class="text-lg font-bold text-gray-900 mb-2">Data Science & AI</h3>
+                    <p class="text-sm text-gray-600 mb-4 line-clamp-2">Python, Machine Learning, Deep Learning with real-world projects</p>
+                    
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-1">
+                            <i class="fas fa-star text-yellow-400 text-sm"></i>
+                            <span class="text-sm font-semibold text-gray-900">4.7</span>
+                            <span class="text-xs text-gray-500">(756)</span>
+                        </div>
+                        <span class="text-xs text-gray-500">
+                            <i class="far fa-clock"></i> 10 months
+                        </span>
+                    </div>
+                    
+                    <button class="w-full bg-blue-600 text-white py-2.5 rounded-lg font-semibold hover:bg-blue-700 transition-all">
+                        Enroll Now
+                    </button>
+                </div>
+            </div>
+            
+        </div>
+    </main>
+    
+    <script src="dashboard.js"></script>
+</body>
+</html>
