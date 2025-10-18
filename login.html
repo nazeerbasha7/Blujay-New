@@ -211,6 +211,45 @@
         .testimonial-card:nth-child(4) {
             animation-delay: 3s;
         }
+
+
+                /* ===== BLUJAY BRAND COLOR OVERRIDES ===== */
+        :root {
+            --blujay-primary: #1D5D7F;
+            --blujay-primary-hover: #236192;
+            --blujay-light: #E8F4F8;
+        }
+        
+        /* Override scrollbar */
+        ::-webkit-scrollbar-thumb {
+            background: var(--blujay-primary) !important;
+        }
+        
+        /* Override all blue-600 classes */
+        .bg-blue-600 {
+            background-color: var(--blujay-primary) !important;
+        }
+        
+        .hover\:bg-blue-700:hover {
+            background-color: var(--blujay-primary-hover) !important;
+        }
+        
+        .text-blue-600 {
+            color: var(--blujay-primary) !important;
+        }
+        
+        .border-blue-600 {
+            border-color: var(--blujay-primary) !important;
+        }
+        
+        .focus\:border-blue-600:focus {
+            border-color: var(--blujay-primary) !important;
+        }
+        
+        .hover\:underline:hover {
+            text-decoration-color: var(--blujay-primary);
+        }
+
     </style>
 </head>
 <body class="bg-gray-50">

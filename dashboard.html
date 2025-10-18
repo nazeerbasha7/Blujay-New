@@ -22,6 +22,59 @@
             padding: 0;
             background: #f9fafb;
         }
+         * {
+        font-family: 'Inter', sans-serif;
+    }
+    body {
+        margin: 0;
+        padding: 0;
+        background: #f9fafb;
+    }
+    
+    /* ===== BLUJAY BRAND COLOR OVERRIDES ===== */
+    :root {
+        --blujay-primary: #1D5D7F;
+        --blujay-primary-hover: #236192;
+        --blujay-light: #E8F4F8;
+    }
+    
+    /* Override all blue-600 classes */
+    .bg-blue-600 {
+        background-color: var(--blujay-primary) !important;
+    }
+    
+    .hover\:bg-blue-700:hover {
+        background-color: var(--blujay-primary-hover) !important;
+    }
+    
+    .text-blue-600 {
+        color: var(--blujay-primary) !important;
+    }
+    
+    .text-blue-100 {
+        color: #B8D8E8 !important;
+    }
+    
+    .border-blue-500 {
+        border-color: var(--blujay-primary) !important;
+    }
+    
+    .bg-blue-100 {
+        background-color: var(--blujay-light) !important;
+    }
+    
+    .hover\:bg-blue-50:hover {
+        background-color: var(--blujay-light) !important;
+    }
+    
+    .focus\:ring-blue-500:focus {
+        --tw-ring-color: var(--blujay-primary) !important;
+    }
+    
+    /* Gradient from blue to purple stays mixed */
+    .from-blue-600 {
+        --tw-gradient-from: var(--blujay-primary) !important;
+    }
     </style>
 </head>
 <body>
