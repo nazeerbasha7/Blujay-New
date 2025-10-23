@@ -19,8 +19,6 @@ const db = firebase.firestore();
 // ============================================
 // SET PERMANENT LOGIN PERSISTENCE
 // ============================================
-// User stays logged in FOREVER (even after closing browser)
-// Only logs out when clicking "Logout" button
 auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
     .then(() => {
         console.log('✅ Persistence set to LOCAL - User will stay logged in permanently');
@@ -32,6 +30,92 @@ auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
 // Global variables
 let recaptchaVerifier;
 let confirmationResult;
+
+// ============================================
+// ✅ ADMIN EMAIL LIST (CASE-INSENSITIVE)
+// ============================================
+const ADMIN_EMAILS = [
+    'blujaytech@admin.com',
+    'nazeerbasha7711@gmail.com',
+    'admin@blujay.com'
+    // Add more admin emails here (lowercase)
+];
+
+// ============================================
+// ✅ CHECK IF USER IS ADMIN (IMPROVED)
+// ============================================
+function checkIfAdmin(user) {
+    if (!user || !user.email) return false;
+    const email = user.email.toLowerCase().trim();
+    const isAdmin = ADMIN_EMAILS.includes(email);
+    console.log(`🔍 Admin check for ${email}: ${isAdmin}`);
+    return isAdmin;
+}
+
+// ============================================
+// ✅ SMART REDIRECT BASED ON ROLE & CURRENT PAGE
+// ============================================
+function handleAuthRedirect(user) {
+    if (!user) return;
+    
+    const currentPath = window.location.pathname;
+    const isAdmin = checkIfAdmin(user);
+    
+    console.log('📍 Current path:', currentPath);
+    console.log('👤 User email:', user.email);
+    console.log('🎯 Is Admin:', isAdmin);
+    
+    // On login/signup pages
+    if (currentPath.includes('login.html') || currentPath.includes('signup.html') || currentPath === '/' || currentPath.includes('index.html')) {
+        if (isAdmin) {
+            console.log('✅ Redirecting admin to admin dashboard...');
+            window.location.href = 'admin/admin-dashboard.html';
+        } else {
+            console.log('✅ Redirecting student to dashboard...');
+            window.location.href = 'dashboard.html';
+        }
+        return;
+    }
+    
+    // Admin trying to access student pages
+    if (isAdmin && (currentPath.includes('dashboard.html') && !currentPath.includes('admin'))) {
+        console.log('⚠️ Admin on student page, redirecting to admin dashboard...');
+        window.location.href = 'admin/admin-dashboard.html';
+        return;
+    }
+    
+    // Student trying to access admin pages
+    if (!isAdmin && currentPath.includes('admin/')) {
+        console.log('⚠️ Student trying to access admin page, redirecting to student dashboard...');
+        window.location.href = '../dashboard.html';
+        return;
+    }
+}
+
+// ============================================
+// ✅ CHECK AUTH STATE (IMPROVED)
+// ============================================
+function checkAuthState() {
+    firebase.auth().onAuthStateChanged((user) => {
+        if (user) {
+            console.log('✅ User authenticated:', user.email || user.phoneNumber);
+            handleAuthRedirect(user);
+        } else {
+            console.log('ℹ️ User not logged in');
+            const currentPath = window.location.pathname;
+            
+            // Redirect to login if on protected pages
+            if (currentPath.includes('dashboard.html') || 
+                currentPath.includes('my-learning.html') || 
+                currentPath.includes('course-player.html') ||
+                currentPath.includes('admin/')) {
+                console.log('🔄 Protected page - redirecting to login...');
+                const redirectTo = currentPath.includes('admin/') ? '../login.html' : 'login.html';
+                window.location.href = redirectTo;
+            }
+        }
+    });
+}
 
 // ============================================
 // INITIALIZE RECAPTCHA ON PAGE LOAD
@@ -65,65 +149,7 @@ window.onload = function() {
 };
 
 // ============================================
-// CHECK AUTH STATE (Auto-redirect if logged in)
-// ✅ UPDATED WITH ADMIN ROLE CHECKING
-// ============================================
-function checkAuthState() {
-    firebase.auth().onAuthStateChanged((user) => {
-        if (user) {
-            // ✅ User is signed in
-            const currentPage = window.location.pathname;
-            
-            console.log('✅ User authenticated:', user.email || user.phoneNumber);
-            
-            // ✅ NEW: Check if user is admin
-            const isAdmin = checkIfAdmin(user);
-            
-            // If on login/signup page, redirect based on role
-            if (currentPage.includes('login.html') || currentPage.includes('signup.html')) {
-                if (isAdmin) {
-                    console.log('🔄 Admin user detected, redirecting to admin dashboard...');
-                    window.location.href = 'admin/admin-dashboard.html';
-                } else {
-                    console.log('🔄 Student user detected, redirecting to dashboard...');
-                    window.location.href = 'dashboard.html';
-                }
-            }
-        } else {
-            // ❌ User is signed out
-            const currentPage = window.location.pathname;
-            
-            console.log('ℹ️ User not logged in');
-            
-            // If on protected pages, redirect to login
-            if (currentPage.includes('dashboard.html') || 
-                currentPage.includes('my-learning.html') || 
-                currentPage.includes('course-player.html') ||
-                currentPage.includes('admin/')) {  // ✅ NEW: Protect admin pages
-                console.log('🔄 Protected page - redirecting to login...');
-                window.location.href = '/login.html';
-            }
-        }
-    });
-}
-
-// ============================================
-// ✅ NEW FUNCTION: CHECK IF USER IS ADMIN
-// ============================================
-function checkIfAdmin(user) {
-    // Temporary check: Admin email
-    // Later: Will check role from MongoDB via backend API
-    const adminEmails = [
-        'Blujaytech@admin.com',
-        'nazeerbasha7711@gmail.com'
-    ];
-    
-    return adminEmails.includes(user.email);
-}
-
-// ============================================
 // PHONE LOGIN FUNCTIONALITY
-// ✅ UPDATED WITH ADMIN CHECK
 // ============================================
 if (document.getElementById('phone-login-form')) {
     document.getElementById('phone-login-form').addEventListener('submit', function(e) {
@@ -167,29 +193,19 @@ if (document.getElementById('phone-login-form')) {
                 const user = result.user;
                 console.log('Login successful:', user);
                 
-                // Save user to Firestore (if not exists)
-                return db.collection('users').doc(user.uid).get().then((doc) => {
-                    if (!doc.exists) {
-                        // New user - create profile
-                        return db.collection('users').doc(user.uid).set({
-                            uid: user.uid,
-                            phoneNumber: user.phoneNumber,
-                            role: 'student',  // ✅ NEW: Default role is student
-                            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                            lastLogin: firebase.firestore.FieldValue.serverTimestamp()
-                        });
-                    } else {
-                        // Existing user - update last login
-                        return db.collection('users').doc(user.uid).update({
-                            lastLogin: firebase.firestore.FieldValue.serverTimestamp()
-                        });
-                    }
-                }).then(() => {
-                    alert('Login successful! Welcome to Blujay Technologies');
-                    
-                    // ✅ REDIRECT BASED ON ROLE (Phone users are always students)
-                    window.location.href = 'dashboard.html';
-                });
+                // Save user to Firestore
+                return db.collection('users').doc(user.uid).set({
+                    uid: user.uid,
+                    phoneNumber: user.phoneNumber,
+                    role: 'student',
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    lastLogin: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
+            })
+            .then(() => {
+                alert('Login successful! Welcome to Blujay Technologies');
+                // Phone users are always students
+                window.location.href = 'dashboard.html';
             })
             .catch((error) => {
                 console.error('Error:', error);
@@ -211,8 +227,7 @@ if (document.getElementById('phone-login-form')) {
 }
 
 // ============================================
-// GOOGLE LOGIN FUNCTIONALITY
-// ✅ UPDATED WITH ADMIN CHECK
+// GOOGLE LOGIN FUNCTIONALITY (IMPROVED)
 // ============================================
 if (document.getElementById('google-login-btn')) {
     document.getElementById('google-login-btn').addEventListener('click', function() {
@@ -223,7 +238,6 @@ if (document.getElementById('google-login-btn')) {
                 const user = result.user;
                 console.log('Google login successful:', user);
                 
-                // ✅ NEW: Check if admin
                 const isAdmin = checkIfAdmin(user);
                 
                 // Save/update user in Firestore
@@ -233,24 +247,21 @@ if (document.getElementById('google-login-btn')) {
                     email: user.email,
                     phoneNumber: user.phoneNumber || '',
                     profilePhoto: user.photoURL,
-                    role: isAdmin ? 'admin' : 'student',  // ✅ NEW: Set role
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    role: isAdmin ? 'admin' : 'student',
                     lastLogin: firebase.firestore.FieldValue.serverTimestamp()
-                }, { merge: true });
+                }, { merge: true }).then(() => {
+                    return { user, isAdmin };
+                });
             })
-            .then(() => {
-                // Get current user
-                const user = firebase.auth().currentUser;
-                const isAdmin = checkIfAdmin(user);
-                
+            .then(({ user, isAdmin }) => {
                 alert('Login successful! Welcome to Blujay Technologies');
                 
-                // ✅ REDIRECT BASED ON ROLE
+                // Redirect based on role
                 if (isAdmin) {
-                    console.log('🎯 Redirecting to admin dashboard...');
+                    console.log('🎯 Redirecting admin to admin dashboard...');
                     window.location.href = 'admin/admin-dashboard.html';
                 } else {
-                    console.log('🎯 Redirecting to student dashboard...');
+                    console.log('🎯 Redirecting student to dashboard...');
                     window.location.href = 'dashboard.html';
                 }
             })
@@ -274,4 +285,4 @@ phoneInputs.forEach(input => {
     });
 });
 
-console.log('✅ Blujay Technologies - Auth System Ready with PERMANENT LOGIN & ADMIN ROLE CHECKING!');
+console.log('✅ Blujay Technologies - Auth System Ready with ADMIN ROLE CHECKING (Mobile & Desktop)!');
