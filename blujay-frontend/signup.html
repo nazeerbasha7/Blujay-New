@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Sign up for Blujay Technologies">
+    <title>Sign Up - Blujay Technologies</title>
+    
+    <!-- Same head content as login.html -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    
+    <style>
+    * {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    
+    body {
+        margin: 0;
+        padding: 0;
+    }
+    
+    ::-webkit-scrollbar {
+        width: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+        background: #1D5D7F; /* ← CHANGED from #2563eb */
+        border-radius: 4px;
+    }
+    
+    .decorative-circle {
+        position: absolute;
+        border-radius: 50%;
+        border: 2px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .circle-1 {
+        width: 500px;
+        height: 500px;
+        right: -100px;
+        bottom: -100px;
+    }
+    
+    .circle-2 {
+        width: 350px;
+        height: 350px;
+        right: 50px;
+        top: 50px;
+    }
+    
+    .testimonial-card {
+        animation: float 6s ease-in-out infinite;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .testimonial-card:hover {
+        transform: translateY(-10px) scale(1.02);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    }
+    
+    @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-20px); }
+    }
+    
+    .testimonial-card:nth-child(2) {
+        animation-delay: 1s;
+    }
+    
+    .testimonial-card:nth-child(3) {
+        animation-delay: 2s;
+    }
+    
+    .testimonial-card:nth-child(4) {
+        animation-delay: 3s;
+    }
+    
+    /* ===== BLUJAY BRAND COLOR OVERRIDES ===== */
+    :root {
+        --blujay-primary: #1D5D7F;
+        --blujay-primary-hover: #236192;
+        --blujay-light: #E8F4F8;
+    }
+    
+    .bg-blue-600 {
+        background-color: var(--blujay-primary) !important;
+    }
+    
+    .hover\:bg-blue-700:hover {
+        background-color: var(--blujay-primary-hover) !important;
+    }
+    
+    .text-blue-600 {
+        color: var(--blujay-primary) !important;
+    }
+    
+    .hover\:underline:hover {
+        text-decoration-color: var(--blujay-primary);
+    }
+    
+    .border-blue-600 {
+        border-color: var(--blujay-primary) !important;
+    }
+    
+    .focus\:border-blue-600:focus {
+        border-color: var(--blujay-primary) !important;
+    }
+</style>
+
+</head>
+<body class="bg-gray-50">
+    
+    <div class="min-h-screen flex">
+        <!-- Left Side - Signup Form -->
+        <div class="w-full lg:w-1/2 flex items-center justify-center p-6 lg:p-12 bg-white">
+            <div class="w-full max-w-md">
+                <!-- Logo -->
+                <div class="mb-10 lg:mb-12">
+                    <img src="logo.png" alt="Blujay Technologies" class="h-11 w-auto object-contain" loading="lazy">
+                </div>
+                
+                <!-- Heading -->
+                <div class="mb-8">
+                    <h1 class="text-[28px] font-bold text-gray-900 mb-2 leading-tight">Create your account</h1>
+                    <p class="text-[14px] text-gray-600">Enter your details to get started on your learning journey</p>
+                </div>
+                
+                <!-- Signup Form -->
+                <form id="signup-form" class="space-y-6">
+                    <!-- Name Input -->
+                    <div>
+                        <label for="name" class="block text-[14px] font-semibold text-gray-900 mb-3">Name</label>
+                        <div class="relative">
+                            <i class="fas fa-user absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-[16px]"></i>
+                            <input 
+                                type="text" 
+                                id="name" 
+                                placeholder="Enter name" 
+                                class="w-full h-[52px] pl-12 pr-4 bg-white border border-gray-300 rounded-lg text-[15px] text-gray-900 placeholder-gray-400 focus:outline-none focus:border-blue-600 transition-all"
+                                required
+                            >
+                        </div>
+                    </div>
+                    
+                    <!-- Phone Number Input -->
+                    <div>
+                        <label for="signup-phone" class="block text-[14px] font-semibold text-gray-900 mb-3">Phone Number</label>
+                        <div class="flex gap-0">
+                            <div class="relative">
+                                <select id="signup-country-code" class="h-[52px] pl-4 pr-10 bg-white border border-r-0 border-gray-300 rounded-l-lg text-[15px] font-medium text-gray-900 appearance-none cursor-pointer focus:outline-none focus:border-blue-600 transition-all">
+                                    <option value="+91">+91</option>
+                                    <option value="+1">+1</option>
+                                    <option value="+44">+44</option>
+                                </select>
+                                <i class="fas fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-[11px] text-gray-500 pointer-events-none"></i>
+                            </div>
+                            <input 
+                                type="tel" 
+                                id="signup-phone" 
+                                placeholder="Enter Phone No." 
+                                maxlength="10"
+                                class="flex-1 h-[52px] px-4 bg-white border border-gray-300 rounded-r-lg text-[15px] text-gray-900 placeholder-gray-400 focus:outline-none focus:border-blue-600 transition-all"
+                                required
+                            >
+                        </div>
+                    </div>
+                    
+                    <!-- reCAPTCHA -->
+                    <div id="recaptcha-signup-container"></div>
+                    
+                    <!-- Terms Checkbox -->
+                    <div class="flex items-start gap-3">
+                        <input type="checkbox" id="terms" class="mt-1 w-4 h-4 cursor-pointer" required>
+                        <label for="terms" class="text-[13px] text-gray-600 leading-relaxed">
+                            By clicking 'Apply Now For Free', you agree to our 
+                            <a href="#" class="text-blue-600 hover:underline">Terms & Conditions</a>
+                        </label>
+                    </div>
+                    
+                    <!-- Signup Button -->
+                    <button 
+                        type="submit" 
+                        id="signup-btn"
+                        class="w-full h-[52px] bg-blue-600 text-white text-[15px] font-semibold rounded-lg hover:bg-blue-700 transition-all shadow-md hover:shadow-lg"
+                    >
+                        Apply Now For Free
+                    </button>
+                </form>
+                
+                <!-- Login Link -->
+                <div class="text-center mt-7">
+                    <p class="text-[14px] text-gray-600">
+                        Already have an account? 
+                        <a href="login.html" class="text-blue-600 font-semibold hover:underline">Login</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Right Side - Same Testimonials Section -->
+        <div class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-[#0a2540] via-[#0d3a5f] to-[#0f4068] relative overflow-hidden">
+            <div class="decorative-circle circle-1"></div>
+            <div class="decorative-circle circle-2"></div>
+            
+            <div class="w-full h-full flex flex-col justify-start pt-16 px-10 relative z-10">
+                <div class="mb-6">
+                    <h2 class="text-white text-[38px] font-bold mb-3 leading-tight">
+                        Hear it from our students
+                    </h2>
+                    <p class="text-white text-[16px] font-normal opacity-90">
+                        1500+ students have been placed till now
+                    </p>
+                </div>
+                
+                <div class="flex gap-2 mb-10">
+                    <div class="w-10 h-2 rounded-full bg-white transition-all"></div>
+                    <div class="w-2 h-2 rounded-full bg-white opacity-40 transition-all"></div>
+                    <div class="w-2 h-2 rounded-full bg-white opacity-40 transition-all"></div>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4 relative">
+                    <!-- Same 4 testimonial cards -->
+                    <div class="testimonial-card bg-white rounded-xl p-5 shadow-xl">
+                        <div class="flex items-center gap-3 mb-3">
+                            <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Student" class="w-11 h-11 rounded-full object-cover">
+                            <div>
+                                <h3 class="text-[15px] font-bold text-gray-900">Rajesh Kumar</h3>
+                                <p class="text-[11px] text-gray-600">Placed at <span class="font-semibold">Infosys</span></p>
+                            </div>
+                        </div>
+                        <p class="text-[12px] text-gray-700 leading-relaxed">
+                            Blujay refined my coding and technical abilities, securing me an SDE position at Infosys!
+                        </p>
+                    </div>
+                    
+                    <div class="testimonial-card bg-white rounded-xl p-5 shadow-xl">
+                        <div class="flex items-center gap-3 mb-3">
+                            <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Student" class="w-11 h-11 rounded-full object-cover">
+                            <div>
+                                <h3 class="text-[15px] font-bold text-gray-900">Priya Sharma</h3>
+                                <p class="text-[11px] text-gray-600">Placed at <span class="font-semibold">TCS</span></p>
+                            </div>
+                        </div>
+                        <p class="text-[12px] text-gray-700 leading-relaxed">
+                            I came across Blujay & found the program to be very affordable. The classes were very useful!
+                        </p>
+                    </div>
+                    
+                    <div class="testimonial-card bg-white rounded-xl p-5 shadow-xl">
+                        <div class="flex items-center gap-3 mb-3">
+                            <img src="https://randomuser.me/api/portraits/men/45.jpg" alt="Student" class="w-11 h-11 rounded-full object-cover">
+                            <div>
+                                <h3 class="text-[15px] font-bold text-gray-900">Arjun Reddy</h3>
+                                <p class="text-[11px] text-gray-600">Placed at <span class="font-semibold">Wipro</span></p>
+                            </div>
+                        </div>
+                        <p class="text-[12px] text-gray-700 leading-relaxed">
+                            Blujay helped me turn and I was able to strengthen my DSA skills & land my dream job.
+                        </p>
+                    </div>
+                    
+                    <div class="testimonial-card bg-white rounded-xl p-5 shadow-xl">
+                        <div class="flex items-center gap-3 mb-3">
+                            <img src="https://randomuser.me/api/portraits/women/65.jpg" alt="Student" class="w-11 h-11 rounded-full object-cover">
+                            <div>
+                                <h3 class="text-[15px] font-bold text-gray-900">Sneha Patel</h3>
+                                <p class="text-[11px] text-gray-600">Placed at <span class="font-semibold">Accenture</span></p>
+                            </div>
+                        </div>
+                        <p class="text-[12px] text-gray-700 leading-relaxed">
+                            I highly recommend Blujay for anyone looking to improve their DSA skills & land their dream job.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="js/auth.js"></script>
+</body>
+</html>
