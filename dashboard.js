@@ -349,7 +349,7 @@ saveProfileBtn.addEventListener('click', () => {
 });
 
 // ============================================
-// LOGOUT
+// LOGOUT - ✅ UPDATED TO REDIRECT TO INDEX.HTML
 // ============================================
 const logoutBtn = document.getElementById('logout-btn');
 const sidebarLogoutBtn = document.getElementById('sidebar-logout-btn');
@@ -359,11 +359,11 @@ function handleLogout() {
         auth.signOut()
             .then(() => {
                 console.log('✅ Logged out');
-                window.location.href = 'login.html';
+                window.location.href = 'index.html'; // ✅ CHANGED FROM login.html
             })
             .catch((error) => {
                 console.error('❌ Logout error:', error);
-                window.location.href = 'login.html';
+                window.location.href = 'index.html'; // ✅ CHANGED FROM login.html
             });
     }
 }

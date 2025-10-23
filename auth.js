@@ -1,7 +1,6 @@
 // ============================================
 // FIREBASE CONFIGURATION
 // ============================================
-// TODO: Replace with your actual Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyCiedANEie5u-2XQOjdsUFgdkE7s08gArY",
   authDomain: "blujay-tech.firebaseapp.com",
@@ -12,11 +11,23 @@ const firebaseConfig = {
   measurementId: "G-1JE665W8D0"
 };
 
-
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
+
+// ============================================
+// SET PERMANENT LOGIN PERSISTENCE
+// ============================================
+// User stays logged in FOREVER (even after closing browser)
+// Only logs out when clicking "Logout" button
+auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+    .then(() => {
+        console.log('✅ Persistence set to LOCAL - User will stay logged in permanently');
+    })
+    .catch((error) => {
+        console.error('❌ Error setting persistence:', error);
+    });
 
 // Global variables
 let recaptchaVerifier;
@@ -59,21 +70,27 @@ window.onload = function() {
 function checkAuthState() {
     firebase.auth().onAuthStateChanged((user) => {
         if (user) {
-            // User is signed in
+            // ✅ User is signed in
             const currentPage = window.location.pathname;
+            
+            console.log('✅ User authenticated:', user.email || user.phoneNumber);
             
             // If on login/signup page, redirect to dashboard
             if (currentPage.includes('login.html') || currentPage.includes('signup.html')) {
-                console.log('User already logged in, redirecting to dashboard...');
+                console.log('🔄 User already logged in, redirecting to dashboard...');
                 window.location.href = 'dashboard.html';
             }
         } else {
-            // User is signed out
+            // ❌ User is signed out
             const currentPage = window.location.pathname;
             
-            // If on dashboard, redirect to login
-            if (currentPage.includes('dashboard.html')) {
-                console.log('User not logged in, redirecting to login...');
+            console.log('ℹ️ User not logged in');
+            
+            // If on protected pages, redirect to login
+            if (currentPage.includes('dashboard.html') || 
+                currentPage.includes('my-learning.html') || 
+                currentPage.includes('course-player.html')) {
+                console.log('🔄 Protected page - redirecting to login...');
                 window.location.href = 'login.html';
             }
         }
@@ -216,4 +233,4 @@ phoneInputs.forEach(input => {
     });
 });
 
-console.log('✅ Blujay Technologies - Auth System Ready!');
+console.log('✅ Blujay Technologies - Auth System Ready with PERMANENT LOGIN!');

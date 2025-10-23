@@ -250,7 +250,7 @@ document.addEventListener('click', (e) => {
 });
 
 // ============================================
-// LOGOUT FUNCTIONALITY
+// LOGOUT - ✅ UPDATED TO REDIRECT TO INDEX.HTML
 // ============================================
 const logoutBtn = document.getElementById('logout-btn');
 logoutBtn.addEventListener('click', () => {
@@ -258,10 +258,11 @@ logoutBtn.addEventListener('click', () => {
         auth.signOut()
             .then(() => {
                 console.log('✅ Logged out');
-                window.location.href = 'login.html';
+                window.location.href = 'index.html'; // ✅ CHANGED FROM login.html
             })
             .catch((error) => {
                 console.error('❌ Logout error:', error);
+                window.location.href = 'index.html'; // ✅ CHANGED FROM login.html
             });
     }
 });
