@@ -424,7 +424,7 @@
         <!-- Course Grid (Mobile Responsive) -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 lg:gap-6">
             
-            <!-- Course Card 1 -->
+            <!-- Course Card 1 - MERN -->
             <div class="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all cursor-pointer">
                 <div class="relative">
                     <img src="https://images.unsplash.com/photo-1593720213428-28a5b9e94613?w=400&h=250&fit=crop" alt="Course" class="w-full h-40 sm:h-48 object-cover">
@@ -447,13 +447,13 @@
                         </span>
                     </div>
                     
-                    <button class="w-full bg-blue-600 text-white py-2.5 rounded-lg font-semibold hover:bg-blue-700 transition-all text-sm">
+                    <button onclick="enrollInCourse('course-mern', 'MERN Full Stack Development', 4999)" class="w-full bg-blue-600 text-white py-2.5 rounded-lg font-semibold hover:bg-blue-700 transition-all text-sm">
                         Enroll Now
                     </button>
                 </div>
             </div>
             
-            <!-- Course Card 2 -->
+            <!-- Course Card 2 - Java -->
             <div class="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all cursor-pointer">
                 <div class="relative">
                     <img src="https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=400&h=250&fit=crop" alt="Course" class="w-full h-40 sm:h-48 object-cover">
@@ -476,13 +476,13 @@
                         </span>
                     </div>
                     
-                    <button class="w-full bg-blue-600 text-white py-2.5 rounded-lg font-semibold hover:bg-blue-700 transition-all text-sm">
+                    <button onclick="enrollInCourse('course-java', 'Java Full Stack with Spring Boot', 5999)" class="w-full bg-blue-600 text-white py-2.5 rounded-lg font-semibold hover:bg-blue-700 transition-all text-sm">
                         Enroll Now
                     </button>
                 </div>
             </div>
             
-            <!-- Course Card 3 -->
+            <!-- Course Card 3 - Data Science -->
             <div class="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all cursor-pointer">
                 <div class="relative">
                     <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=250&fit=crop" alt="Course" class="w-full h-40 sm:h-48 object-cover">
@@ -505,7 +505,7 @@
                         </span>
                     </div>
                     
-                    <button class="w-full bg-blue-600 text-white py-2.5 rounded-lg font-semibold hover:bg-blue-700 transition-all text-sm">
+                    <button onclick="enrollInCourse('course-datascience', 'Data Science & AI', 6999)" class="w-full bg-blue-600 text-white py-2.5 rounded-lg font-semibold hover:bg-blue-700 transition-all text-sm">
                         Enroll Now
                     </button>
                 </div>
@@ -514,6 +514,6 @@
         </div>
     </main>
     
-    <script src="dashboard.js"></script>
+    <script src="js/dashboard.js"></script>
 </body>
 </html>
