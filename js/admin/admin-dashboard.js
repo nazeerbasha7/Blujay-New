@@ -16,7 +16,7 @@ auth.onAuthStateChanged((user) => {
         window.location.href = '../login.html';
     } else {
         // Check if admin
-        const adminEmails = ['Blujaytech@admin.com', 'nazeerbasha7711@gmail.com'];
+        const adminEmails = ['cheruku.harikrishna@gmail.com', 'nazeerbasha7711@gmail.com'];
         if (!adminEmails.includes(user.email)) {
             // Not admin - redirect to student dashboard
             console.log('❌ Not admin, redirecting to student dashboard...');

@@ -35,7 +35,7 @@ let confirmationResult;
 // ✅ ADMIN EMAIL LIST (CASE-INSENSITIVE)
 // ============================================
 const ADMIN_EMAILS = [
-    'blujaytech@admin.com',
+    'cheruku.harikrishna@gmail.com',
     'nazeerbasha7711@gmail.com',
     'admin@blujay.com'
     // Add more admin emails here (lowercase)

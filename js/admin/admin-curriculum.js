@@ -18,7 +18,7 @@ auth.onAuthStateChanged((user) => {
     if (!user) {
         window.location.href = '../login.html';
     } else {
-        const adminEmails = ['Blujaytech@admin.com', 'nazeerbasha7711@gmail.com'];
+        const adminEmails = ['cheruku.harikrishna@gmail.com', 'nazeerbasha7711@gmail.com'];
         if (!adminEmails.includes(user.email)) {
             alert('Access denied! Admin only.');
             window.location.href = '../dashboard.html';

@@ -1,5 +1,5 @@
 // ============================================
-// FIREBASE CONFIGURATION (Same as auth.js)
+// FIREBASE CONFIGURATION
 // ============================================
 const firebaseConfig = {
   apiKey: "AIzaSyCiedANEie5u-2XQOjdsUFgdkE7s08gArY",
@@ -18,6 +18,17 @@ if (!firebase.apps.length) {
 
 const auth = firebase.auth();
 const db = firebase.firestore();
+
+// ============================================
+// ✅ ADMIN EMAIL LIST
+// ============================================
+const ADMIN_EMAILS = ['nazeerbasha7711@gmail.com', 'cheruku.harikrishna@gmail.com'];
+
+// ============================================
+// GLOBAL VARIABLES
+// ============================================
+let currentUser = null;
+let userData = {};
 
 // ============================================
 // DUMMY COURSE DATA (Replace with real API later)
@@ -77,17 +88,130 @@ const enrolledCourses = [
 ];
 
 // ============================================
-// CHECK AUTHENTICATION
+// ✅ NEW: CHECK IF USER IS ADMIN & SHOW ADMIN LINK
+// ============================================
+function showAdminDashboardLink(userEmail) {
+    if (ADMIN_EMAILS.includes(userEmail)) {
+        const profileDropdown = document.getElementById('profile-dropdown');
+        if (!profileDropdown) return;
+        
+        // Find the My Learning link
+        const myLearningLink = profileDropdown.querySelector('a[href="my-learning.html"]');
+        if (!myLearningLink) return;
+        
+        // Check if admin link already exists
+        if (document.getElementById('admin-dashboard-link')) return;
+        
+        // Create admin dashboard link
+        const adminLink = document.createElement('a');
+        adminLink.id = 'admin-dashboard-link';
+        adminLink.href = 'admin/admin-dashboard.html';
+        adminLink.className = 'flex items-center gap-3 px-4 py-3 hover:bg-orange-50 transition-all border-t border-b border-gray-100';
+        adminLink.innerHTML = `
+            <div class="w-9 h-9 bg-orange-100 rounded-lg flex items-center justify-center">
+                <i class="fas fa-user-shield text-orange-600"></i>
+            </div>
+            <div>
+                <span class="text-sm font-medium text-gray-700">Admin Dashboard</span>
+                <p class="text-xs text-gray-500">Back to admin panel</p>
+            </div>
+        `;
+        
+        // Insert after My Learning link
+        myLearningLink.parentNode.insertBefore(adminLink, myLearningLink.nextSibling);
+        
+        console.log('✅ Admin Dashboard link added for:', userEmail);
+    }
+}
+
+// ============================================
+// CHECK AUTHENTICATION & LOAD USER DATA
 // ============================================
 auth.onAuthStateChanged((user) => {
     if (user) {
+        currentUser = user;
         console.log('✅ User authenticated:', user.email || user.phoneNumber);
+        
+        // Load user data from Firestore
+        loadUserDataFromFirestore(user);
+        
+        // Load enrolled courses
         loadEnrolledCourses();
+        
+        // ✅ Show admin link if user is admin
+        showAdminDashboardLink(user.email);
     } else {
         console.log('❌ No user authenticated, redirecting...');
-        window.location.href = 'login.html';
+        setTimeout(() => {
+            window.location.href = 'login.html';
+        }, 500);
     }
 });
+
+// ============================================
+// LOAD USER DATA FROM FIRESTORE
+// ============================================
+function loadUserDataFromFirestore(user) {
+    db.collection('users').doc(user.uid).get()
+        .then((doc) => {
+            if (doc.exists) {
+                userData = doc.data();
+                console.log('✅ User data loaded from Firestore:', userData);
+            } else {
+                // Use default data from Firebase Auth
+                userData = {
+                    name: user.displayName || 'Student',
+                    email: user.email || user.phoneNumber || '',
+                    profilePhoto: user.photoURL || 'https://ui-avatars.com/api/?name=Student&background=1D5D7F&color=fff'
+                };
+                console.log('ℹ️ Using default user data from Firebase Auth');
+            }
+            
+            // Update UI with correct user data
+            updateUserUI(userData);
+        })
+        .catch((error) => {
+            console.error('❌ Error loading user data:', error);
+            // Fallback to Firebase Auth data
+            userData = {
+                name: user.displayName || 'Student',
+                email: user.email || user.phoneNumber || '',
+                profilePhoto: user.photoURL || 'https://ui-avatars.com/api/?name=Student&background=1D5D7F&color=fff'
+            };
+            updateUserUI(userData);
+        });
+}
+
+// ============================================
+// UPDATE USER UI
+// ============================================
+function updateUserUI(data) {
+    // Update profile photo
+    const userPhoto = document.getElementById('user-photo');
+    if (userPhoto) {
+        userPhoto.src = data.profilePhoto || 'https://ui-avatars.com/api/?name=Student&background=1D5D7F&color=fff';
+    }
+    
+    // Update user name in header (navbar)
+    const userNameHeader = document.getElementById('user-name-header');
+    if (userNameHeader) {
+        userNameHeader.textContent = data.name || 'Student';
+    }
+    
+    // Update user name in dropdown
+    const userNameDropdown = document.getElementById('user-name-dropdown');
+    if (userNameDropdown) {
+        userNameDropdown.textContent = data.name || 'Student';
+    }
+    
+    // Update user email in dropdown
+    const userEmailDropdown = document.getElementById('user-email-dropdown');
+    if (userEmailDropdown) {
+        userEmailDropdown.textContent = data.email || '';
+    }
+    
+    console.log('✅ User UI updated with:', data.name, data.email);
+}
 
 // ============================================
 // LOAD ENROLLED COURSES
@@ -119,7 +243,7 @@ function loadEnrolledCourses(filter = 'all') {
     // Render courses
     container.innerHTML = filteredCourses.map(course => createCourseCard(course)).join('');
     
-    console.log(`✅ Loaded ${filteredCourses.length} courses (filter: ${filter})`);
+    console.log(`✅ Loaded ${filteredCourses.length} courses for user: ${currentUser.email} (filter: ${filter})`);
 }
 
 // ============================================
@@ -203,7 +327,7 @@ function createCourseCard(course) {
 // OPEN COURSE (Navigate to course player)
 // ============================================
 function openCourse(courseId) {
-    console.log('🎬 Opening course:', courseId);
+    console.log('🎬 Opening course:', courseId, 'for user:', currentUser.email);
     window.location.href = `course-player.html?courseId=${courseId}`;
 }
 
@@ -238,34 +362,39 @@ filterButtons.forEach(btn => {
 const profileBtn = document.getElementById('profile-btn');
 const profileDropdown = document.getElementById('profile-dropdown');
 
-profileBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    profileDropdown.classList.toggle('hidden');
-});
+if (profileBtn && profileDropdown) {
+    profileBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        profileDropdown.classList.toggle('hidden');
+    });
 
-document.addEventListener('click', (e) => {
-    if (!profileBtn.contains(e.target) && !profileDropdown.contains(e.target)) {
-        profileDropdown.classList.add('hidden');
-    }
-});
+    document.addEventListener('click', (e) => {
+        if (!profileBtn.contains(e.target) && !profileDropdown.contains(e.target)) {
+            profileDropdown.classList.add('hidden');
+        }
+    });
+}
 
 // ============================================
-// LOGOUT - ✅ UPDATED TO REDIRECT TO INDEX.HTML
+// LOGOUT
 // ============================================
 const logoutBtn = document.getElementById('logout-btn');
-logoutBtn.addEventListener('click', () => {
-    if (confirm('Are you sure you want to logout?')) {
-        auth.signOut()
-            .then(() => {
-                console.log('✅ Logged out');
-                window.location.href = 'index.html'; // ✅ CHANGED FROM login.html
-            })
-            .catch((error) => {
-                console.error('❌ Logout error:', error);
-                window.location.href = 'index.html'; // ✅ CHANGED FROM login.html
-            });
-    }
-});
+if (logoutBtn) {
+    logoutBtn.addEventListener('click', () => {
+        if (confirm('Are you sure you want to logout?')) {
+            auth.signOut()
+                .then(() => {
+                    console.log('✅ Logged out');
+                    window.location.href = 'index.html';
+                })
+                .catch((error) => {
+                    console.error('❌ Logout error:', error);
+                    window.location.href = 'index.html';
+                });
+        }
+    });
+}
 
 console.log('✅ My Learning page loaded!');
 console.log('📚 Total enrolled courses:', enrolledCourses.length);
+console.log('🔐 Admin email check enabled');

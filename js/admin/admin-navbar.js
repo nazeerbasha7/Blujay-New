@@ -20,7 +20,7 @@ auth.onAuthStateChanged((user) => {
         console.log('✅ Admin authenticated:', user.email);
         
         // Check if user is admin
-        const adminEmails = ['nazeerbasha7711@gmail.com', 'admin@blujay.com'];
+        const adminEmails = ['nazeerbasha7711@gmail.com', 'cheruku.harikrishna@gmail.com'];
         if (!adminEmails.includes(user.email)) {
             console.log('❌ Not admin, redirecting...');
             alert('Access denied! Admin only.');

@@ -20,12 +20,54 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 
 // ============================================
+// ✅ ADMIN EMAIL LIST
+// ============================================
+const ADMIN_EMAILS = ['nazeerbasha7711@gmail.com', 'cheruku.harikrishna@gmail.com'];
+
+// ============================================
 // GLOBAL VARIABLES
 // ============================================
 let currentUser = null;
 let userData = {};
 let selectedPhoto = null;
 let interests = [];
+
+// ============================================
+// ✅ NEW: CHECK IF USER IS ADMIN & SHOW ADMIN LINK
+// ============================================
+function showAdminDashboardLink(userEmail) {
+    if (ADMIN_EMAILS.includes(userEmail)) {
+        const profileDropdown = document.getElementById('profile-dropdown');
+        if (!profileDropdown) return;
+        
+        // Find the My Learning link
+        const myLearningLink = profileDropdown.querySelector('a[href="my-learning.html"]');
+        if (!myLearningLink) return;
+        
+        // Check if admin link already exists
+        if (document.getElementById('admin-dashboard-link')) return;
+        
+        // Create admin dashboard link
+        const adminLink = document.createElement('a');
+        adminLink.id = 'admin-dashboard-link';
+        adminLink.href = 'admin/admin-dashboard.html';
+        adminLink.className = 'flex items-center gap-3 px-4 py-3 hover:bg-orange-50 transition-all border-t border-b border-gray-100';
+        adminLink.innerHTML = `
+            <div class="w-9 h-9 bg-orange-100 rounded-lg flex items-center justify-center">
+                <i class="fas fa-user-shield text-orange-600"></i>
+            </div>
+            <div>
+                <span class="text-sm font-medium text-gray-700">Admin Dashboard</span>
+                <p class="text-xs text-gray-500">Back to admin panel</p>
+            </div>
+        `;
+        
+        // Insert after My Learning link
+        myLearningLink.parentNode.insertBefore(adminLink, myLearningLink.nextSibling);
+        
+        console.log('✅ Admin Dashboard link added for:', userEmail);
+    }
+}
 
 // ============================================
 // CHECK AUTHENTICATION & LOAD USER DATA
@@ -35,6 +77,9 @@ auth.onAuthStateChanged((user) => {
         currentUser = user;
         console.log('✅ User authenticated:', user.email || user.phoneNumber);
         loadUserDataFromFirestore(user);
+        
+        // ✅ Show admin link if user is admin
+        showAdminDashboardLink(user.email);
     } else {
         console.log('❌ No user authenticated, redirecting...');
         setTimeout(() => {
@@ -321,9 +366,6 @@ saveProfileBtn.addEventListener('click', () => {
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     };
     
-    // Note: Photo upload to storage would be handled by backend
-    // For now, we skip photo upload (would need Firebase Storage setup)
-    
     db.collection('users').doc(currentUser.uid).set(updatedData, { merge: true })
         .then(() => {
             console.log('✅ Profile updated successfully');
@@ -349,7 +391,7 @@ saveProfileBtn.addEventListener('click', () => {
 });
 
 // ============================================
-// LOGOUT - ✅ UPDATED TO REDIRECT TO INDEX.HTML
+// LOGOUT
 // ============================================
 const logoutBtn = document.getElementById('logout-btn');
 const sidebarLogoutBtn = document.getElementById('sidebar-logout-btn');
@@ -359,11 +401,11 @@ function handleLogout() {
         auth.signOut()
             .then(() => {
                 console.log('✅ Logged out');
-                window.location.href = 'index.html'; // ✅ CHANGED FROM login.html
+                window.location.href = 'index.html';
             })
             .catch((error) => {
                 console.error('❌ Logout error:', error);
-                window.location.href = 'index.html'; // ✅ CHANGED FROM login.html
+                window.location.href = 'index.html';
             });
     }
 }
@@ -371,13 +413,9 @@ function handleLogout() {
 logoutBtn.addEventListener('click', handleLogout);
 sidebarLogoutBtn.addEventListener('click', handleLogout);
 
-
-
 // ============================================
 // COURSE ENROLLMENT FUNCTIONALITY
 // ============================================
-
-// Load and display courses
 function loadCourses() {
     db.collection('courses')
         .where('status', '==', 'published')
@@ -394,7 +432,6 @@ function loadCourses() {
                 coursesContainer.innerHTML += courseCard;
             });
             
-            // Attach click handlers after rendering
             attachEnrollmentHandlers();
         })
         .catch((error) => {
@@ -402,7 +439,6 @@ function loadCourses() {
         });
 }
 
-// Create course card HTML
 function createCourseCard(courseId, course) {
     const originalPrice = course.price || 4999;
     const discountPrice = course.discountPrice || originalPrice;
@@ -439,12 +475,10 @@ function createCourseCard(courseId, course) {
     `;
 }
 
-// Attach enrollment handlers
 function attachEnrollmentHandlers() {
     console.log('✅ Enrollment handlers attached');
 }
 
-// Handle course enrollment
 window.enrollInCourse = function(courseId, courseTitle) {
     if (!currentUser) {
         alert('Please login to enroll in courses');
@@ -454,7 +488,6 @@ window.enrollInCourse = function(courseId, courseTitle) {
     
     console.log('Enrolling in course:', courseId);
     
-    // Check if already enrolled
     db.collection('enrollments')
         .where('userId', '==', currentUser.uid)
         .where('courseId', '==', courseId)
@@ -466,7 +499,6 @@ window.enrollInCourse = function(courseId, courseTitle) {
                 return;
             }
             
-            // Create enrollment
             return db.collection('enrollments').add({
                 userId: currentUser.uid,
                 courseId: courseId,
@@ -489,11 +521,9 @@ window.enrollInCourse = function(courseId, courseTitle) {
         });
 };
 
-// Load courses when page loads
 if (document.getElementById('courses-grid')) {
     loadCourses();
 }
-
 
 console.log('✅ Dashboard loaded successfully!');
 console.log('📱 Mobile responsive: YES');
