@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Blujay Technologies</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+    
+    <style>
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            background: #f9fafb;
+            overflow-x: hidden;
+        }
+        
+        /* ===== BLUJAY BRAND COLORS ===== */
+        :root {
+            --blujay-primary: #1D5D7F;
+            --blujay-primary-hover: #236192;
+            --blujay-light: #E8F4F8;
+        }
+        
+        .bg-blue-600 { background-color: var(--blujay-primary) !important; }
+        .hover\:bg-blue-700:hover { background-color: var(--blujay-primary-hover) !important; }
+        .text-blue-600 { color: var(--blujay-primary) !important; }
+        .text-blue-100 { color: #B8D8E8 !important; }
+        .border-blue-500 { border-color: var(--blujay-primary) !important; }
+        .bg-blue-100 { background-color: var(--blujay-light) !important; }
+        .hover\:bg-blue-50:hover { background-color: var(--blujay-light) !important; }
+        .focus\:ring-blue-500:focus { --tw-ring-color: var(--blujay-primary) !important; }
+        .from-blue-600 { --tw-gradient-from: var(--blujay-primary) !important; }
+        
+        /* ===== PROFILE SIDEBAR (Mobile Responsive) ===== */
+        .profile-sidebar {
+            position: fixed;
+            top: 0;
+            right: -100%;
+            width: 100%;
+            height: 100vh;
+            background: white;
+            box-shadow: -10px 0 30px rgba(0, 0, 0, 0.2);
+            z-index: 9999;
+            transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow-y: auto;
+        }
+        
+        @media (min-width: 640px) {
+            .profile-sidebar {
+                max-width: 480px;
+            }
+        }
+        
+        .profile-sidebar.active {
+            right: 0;
+        }
+        
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 9998;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.4s ease, visibility 0.4s ease;
+        }
+        
+        .sidebar-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        /* Photo upload */
+        .photo-upload-wrapper {
+            position: relative;
+            cursor: pointer;
+        }
+        
+        .photo-upload-wrapper:hover .photo-overlay {
+            opacity: 1;
+        }
+        
+        .photo-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        /* Interest tags */
+        .interest-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #E8F4F8;
+            color: #1D5D7F;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+        
+        .interest-tag button {
+            background: none;
+            border: none;
+            color: #1D5D7F;
+            cursor: pointer;
+            font-size: 16px;
+            line-height: 1;
+        }
+        
+        /* Scrollbar */
+        .profile-sidebar {
+            scrollbar-width: thin;
+            scrollbar-color: #1D5D7F #f1f1f1;
+        }
+        
+        .profile-sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .profile-sidebar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        
+        .profile-sidebar::-webkit-scrollbar-thumb {
+            background: #1D5D7F;
+            border-radius: 3px;
+        }
+        
+        /* Mobile category buttons scroll */
+        .category-scroll {
+            overflow-x: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        
+        .category-scroll::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    
+    <!-- Dark Overlay -->
+    <div id="sidebar-overlay" class="sidebar-overlay"></div>
+    
+    <!-- ===== PROFILE EDIT SIDEBAR (Mobile Responsive) ===== -->
+    <div id="profile-sidebar" class="profile-sidebar">
+        <!-- Sidebar Header -->
+        <div class="sticky top-0 bg-white border-b border-gray-200 px-4 sm:px-6 py-4 flex items-center justify-between z-10">
+            <h2 class="text-lg sm:text-xl font-bold text-gray-900">Edit Profile</h2>
+            <button id="close-sidebar" class="w-10 h-10 flex items-center justify-center hover:bg-gray-100 rounded-full transition-all">
+                <i class="fas fa-times text-gray-600 text-xl"></i>
+            </button>
+        </div>
+        
+        <!-- Sidebar Content -->
+        <div class="px-4 sm:px-6 py-6 space-y-6 sm:space-y-8">
+            
+            <!-- Profile Photo -->
+            <div class="text-center">
+                <h3 class="text-sm font-semibold text-gray-900 mb-4">Profile Photo</h3>
+                <div class="flex flex-col items-center gap-4">
+                    <div class="photo-upload-wrapper">
+                        <img id="sidebar-photo" src="https://randomuser.me/api/portraits/men/32.jpg" alt="Profile" class="w-28 h-28 sm:w-32 sm:h-32 rounded-full object-cover border-4 border-blue-500">
+                        <div class="photo-overlay">
+                            <i class="fas fa-camera text-white text-2xl"></i>
+                        </div>
+                        <input type="file" id="photo-upload" accept="image/*" class="hidden">
+                    </div>
+                    <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                        <button id="upload-photo-btn" class="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-all">
+                            <i class="fas fa-upload mr-2"></i>Upload Photo
+                        </button>
+                        <button id="remove-photo-btn" class="px-4 py-2 bg-gray-100 text-gray-700 text-sm font-semibold rounded-lg hover:bg-gray-200 transition-all">
+                            <i class="fas fa-trash mr-2"></i>Remove
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Personal Information -->
+            <div>
+                <h3 class="text-sm font-semibold text-gray-900 mb-4">Personal Information</h3>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+                        <input type="text" id="edit-name" placeholder="Enter your name" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                        <input type="email" id="edit-email" readonly class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 cursor-not-allowed text-sm sm:text-base">
+                        <p class="text-xs text-gray-500 mt-1">Email cannot be changed</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                        <input type="tel" id="edit-phone" placeholder="+91 9876543210" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- About/Bio -->
+            <div>
+                <h3 class="text-sm font-semibold text-gray-900 mb-4">About</h3>
+                <textarea id="edit-bio" rows="4" placeholder="Tell us about yourself..." maxlength="200" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-sm sm:text-base"></textarea>
+                <p class="text-xs text-gray-500 mt-1"><span id="bio-count">0</span>/200 characters</p>
+            </div>
+            
+            <!-- Interests/Skills -->
+            <div>
+                <h3 class="text-sm font-semibold text-gray-900 mb-4">Interests & Skills</h3>
+                <div id="interests-container" class="flex flex-wrap gap-2 mb-3 min-h-[40px]">
+                    <!-- Tags added dynamically -->
+                </div>
+                <div class="flex gap-2">
+                    <input type="text" id="new-interest" placeholder="Add a skill (e.g., React)" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+                    <button id="add-interest-btn" class="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-all">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Social Links -->
+            <div>
+                <h3 class="text-sm font-semibold text-gray-900 mb-4">Social Links</h3>
+                <div class="space-y-3">
+                    <div class="flex items-center gap-3">
+                        <i class="fab fa-linkedin text-blue-600 text-xl w-6 flex-shrink-0"></i>
+                        <input type="url" id="edit-linkedin" placeholder="https://linkedin.com/in/username" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-xs sm:text-sm">
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <i class="fab fa-github text-gray-900 text-xl w-6 flex-shrink-0"></i>
+                        <input type="url" id="edit-github" placeholder="https://github.com/username" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-xs sm:text-sm">
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <i class="fas fa-globe text-green-600 text-xl w-6 flex-shrink-0"></i>
+                        <input type="url" id="edit-portfolio" placeholder="https://yourportfolio.com" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-xs sm:text-sm">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="sticky bottom-0 bg-white pt-4 pb-6 space-y-3">
+                <button id="save-profile-btn" class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-all shadow-md text-sm sm:text-base">
+                    <i class="fas fa-save mr-2"></i>Save Changes
+                </button>
+                <button id="sidebar-logout-btn" class="w-full bg-red-50 text-red-600 py-3 rounded-lg font-semibold hover:bg-red-100 transition-all text-sm sm:text-base">
+                    <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                </button>
+            </div>
+            
+        </div>
+    </div>
+    
+    <!-- ===== MAIN DASHBOARD ===== -->
+    <!-- Header (Mobile Responsive) -->
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 lg:px-8">
+            <div class="flex justify-between items-center h-14 sm:h-16">
+                <a href="dashboard.html" class="flex items-center">
+                    <img src="logo.png" alt="Blujay" class="h-8 sm:h-10 w-auto">
+                </a>
+                
+                <!-- Desktop Search -->
+                <div class="hidden lg:flex flex-1 max-w-lg mx-8">
+                    <div class="relative w-full">
+                        <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                        <input type="text" placeholder="Search courses..." class="w-full h-11 pl-12 pr-4 bg-gray-50 border-0 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-2 sm:gap-3">
+                    <!-- Desktop Doubt Solver -->
+                    <button class="hidden lg:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg text-sm font-semibold hover:shadow-lg transition-all">
+                        <i class="fas fa-question-circle"></i>
+                        <span>Doubt Solver</span>
+                    </button>
+                    
+                    <!-- Profile Dropdown -->
+                    <div class="relative">
+                        <button id="profile-btn" class="flex items-center gap-2 sm:gap-3 hover:bg-gray-50 px-2 sm:px-3 py-2 rounded-lg transition-all">
+                            <img id="user-photo" src="https://randomuser.me/api/portraits/men/32.jpg" alt="Profile" class="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover border-2 border-blue-500">
+                            <div class="hidden lg:block text-left">
+                                <p class="text-sm font-semibold text-gray-900" id="user-name-header">Nazeer Basha</p>
+                                <p class="text-xs text-gray-500">Student</p>
+                            </div>
+                            <i class="fas fa-chevron-down text-xs text-gray-500 hidden lg:block"></i>
+                        </button>
+                        
+                        <!-- Dropdown Menu -->
+                        <div id="profile-dropdown" class="hidden absolute right-0 mt-2 w-60 sm:w-64 bg-white rounded-xl shadow-xl border border-gray-100 py-2 z-50">
+                            <div class="px-4 py-3 border-b border-gray-100">
+                                <p class="text-sm font-semibold text-gray-900" id="user-name-dropdown">Nazeer Basha</p>
+                                <p class="text-xs text-gray-500" id="user-email-dropdown">nazeer@gmail.com</p>
+                            </div>
+                            
+                            <button id="open-profile-btn" class="w-full flex items-center gap-3 px-4 py-3 hover:bg-blue-50 transition-all text-left">
+                                <div class="w-9 h-9 bg-blue-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-user text-blue-600"></i>
+                                </div>
+                                <span class="text-sm font-medium text-gray-700">My Profile</span>
+                            </button>
+                            
+                            <a href="my-learning.html" class="flex items-center gap-3 px-4 py-3 hover:bg-blue-50 transition-all">
+                                <div class="w-9 h-9 bg-green-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-book text-green-600"></i>
+                                </div>
+                                <span class="text-sm font-medium text-gray-700">My Learning</span>
+                            </a>
+                            
+                            <div class="border-t border-gray-100 my-2"></div>
+                            
+                            <button id="logout-btn" class="w-full flex items-center gap-3 px-4 py-3 hover:bg-red-50 transition-all text-left">
+                                <div class="w-9 h-9 bg-red-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-sign-out-alt text-red-600"></i>
+                                </div>
+                                <span class="text-sm font-medium text-red-600">Logout</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Mobile Search Bar (Below header on mobile) -->
+        <div class="lg:hidden px-4 pb-3">
+            <div class="relative">
+                <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                <input type="text" placeholder="Search courses..." class="w-full h-10 pl-10 pr-4 bg-gray-50 border-0 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+        </div>
+    </header>
+    
+    <!-- Main Content (Mobile Responsive) -->
+    <main class="max-w-7xl mx-auto px-4 lg:px-8 py-4 sm:py-6 lg:py-8">
+        
+        <!-- Welcome Section (Mobile Responsive) -->
+        <div class="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl sm:rounded-2xl p-6 sm:p-8 mb-6 sm:mb-8 text-white">
+            <h1 class="text-2xl sm:text-3xl font-bold mb-2">Welcome back, <span id="welcome-name">Nazeer</span>! 👋</h1>
+            <p class="text-blue-100 text-base sm:text-lg">Continue your learning journey and achieve your goals</p>
+        </div>
+        
+        <!-- Quick Stats (Mobile Responsive Grid) -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-8">
+            <!-- Enrolled Courses -->
+            <div class="bg-white rounded-xl p-4 sm:p-6 shadow-sm hover:shadow-md transition-all">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-3 sm:mb-4">
+                    <div class="w-10 h-10 sm:w-12 sm:h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-2 sm:mb-0">
+                        <i class="fas fa-book text-blue-600 text-lg sm:text-xl"></i>
+                    </div>
+                    <span class="text-xl sm:text-2xl font-bold text-gray-900">0</span>
+                </div>
+                <p class="text-xs sm:text-sm text-gray-600 font-medium">Enrolled Courses</p>
+            </div>
+            
+            <!-- Certificates -->
+            <div class="bg-white rounded-xl p-4 sm:p-6 shadow-sm hover:shadow-md transition-all">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-3 sm:mb-4">
+                    <div class="w-10 h-10 sm:w-12 sm:h-12 bg-green-100 rounded-lg flex items-center justify-center mb-2 sm:mb-0">
+                        <i class="fas fa-certificate text-green-600 text-lg sm:text-xl"></i>
+                    </div>
+                    <span class="text-xl sm:text-2xl font-bold text-gray-900">0</span>
+                </div>
+                <p class="text-xs sm:text-sm text-gray-600 font-medium">Certificates</p>
+            </div>
+            
+            <!-- Learning Hours -->
+            <div class="bg-white rounded-xl p-4 sm:p-6 shadow-sm hover:shadow-md transition-all">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-3 sm:mb-4">
+                    <div class="w-10 h-10 sm:w-12 sm:h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-2 sm:mb-0">
+                        <i class="fas fa-clock text-purple-600 text-lg sm:text-xl"></i>
+                    </div>
+                    <span class="text-xl sm:text-2xl font-bold text-gray-900">0h</span>
+                </div>
+                <p class="text-xs sm:text-sm text-gray-600 font-medium">Learning Hours</p>
+            </div>
+            
+            <!-- Achievements -->
+            <div class="bg-white rounded-xl p-4 sm:p-6 shadow-sm hover:shadow-md transition-all">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-3 sm:mb-4">
+                    <div class="w-10 h-10 sm:w-12 sm:h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-2 sm:mb-0">
+                        <i class="fas fa-trophy text-orange-600 text-lg sm:text-xl"></i>
+                    </div>
+                    <span class="text-xl sm:text-2xl font-bold text-gray-900">0</span>
+                </div>
+                <p class="text-xs sm:text-sm text-gray-600 font-medium">Achievements</p>
+            </div>
+        </div>
+        
+        <!-- Course Categories (Mobile Scrollable) -->
+        <div class="mb-6">
+            <h2 class="text-xl sm:text-2xl font-bold text-gray-900 mb-4">Explore Courses</h2>
+            <div class="category-scroll flex gap-2 overflow-x-auto pb-2">
+                <button class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold whitespace-nowrap flex-shrink-0">All</button>
+                <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-200 whitespace-nowrap flex-shrink-0">Full Stack</button>
+                <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-200 whitespace-nowrap flex-shrink-0">Data Science</button>
+                <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-200 whitespace-nowrap flex-shrink-0">Cloud</button>
+            </div>
+        </div>
+        
+        <!-- Course Grid (Mobile Responsive) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 lg:gap-6">
+            
+            <!-- Course Card 1 - MERN -->
+            <div class="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all cursor-pointer">
+                <div class="relative">
+                    <img src="https://images.unsplash.com/photo-1593720213428-28a5b9e94613?w=400&h=250&fit=crop" alt="Course" class="w-full h-40 sm:h-48 object-cover">
+                    <div class="absolute top-3 right-3 bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-bold">
+                        ₹4,999
+                    </div>
+                </div>
+                <div class="p-4 sm:p-5">
+                    <h3 class="text-base sm:text-lg font-bold text-gray-900 mb-2">MERN Full Stack Development</h3>
+                    <p class="text-sm text-gray-600 mb-4 line-clamp-2">Master MongoDB, Express, React, and Node.js with hands-on projects</p>
+                    
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-1">
+                            <i class="fas fa-star text-yellow-400 text-sm"></i>
+                            <span class="text-sm font-semibold text-gray-900">4.8</span>
+                            <span class="text-xs text-gray-500">(1,234)</span>
+                        </div>
+                        <span class="text-xs text-gray-500">
+                            <i class="far fa-clock"></i> 8 months
+                        </span>
+                    </div>
+                    
+                    <button onclick="enrollInCourse('course-mern', 'MERN Full Stack Development', 4999)" class="w-full bg-blue-600 text-white py-2.5 rounded-lg font-semibold hover:bg-blue-700 transition-all text-sm">
+                        Enroll Now
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Course Card 2 - Java -->
+            <div class="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all cursor-pointer">
+                <div class="relative">
+                    <img src="https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=400&h=250&fit=crop" alt="Course" class="w-full h-40 sm:h-48 object-cover">
+                    <div class="absolute top-3 right-3 bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-bold">
+                        ₹5,999
+                    </div>
+                </div>
+                <div class="p-4 sm:p-5">
+                    <h3 class="text-base sm:text-lg font-bold text-gray-900 mb-2">Java Full Stack with Spring Boot</h3>
+                    <p class="text-sm text-gray-600 mb-4 line-clamp-2">Learn Java, Spring Boot, Hibernate, and microservices architecture</p>
+                    
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-1">
+                            <i class="fas fa-star text-yellow-400 text-sm"></i>
+                            <span class="text-sm font-semibold text-gray-900">4.9</span>
+                            <span class="text-xs text-gray-500">(987)</span>
+                        </div>
+                        <span class="text-xs text-gray-500">
+                            <i class="far fa-clock"></i> 8 months
+                        </span>
+                    </div>
+                    
+                    <button onclick="enrollInCourse('course-java', 'Java Full Stack with Spring Boot', 5999)" class="w-full bg-blue-600 text-white py-2.5 rounded-lg font-semibold hover:bg-blue-700 transition-all text-sm">
+                        Enroll Now
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Course Card 3 - Data Science -->
+            <div class="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all cursor-pointer">
+                <div class="relative">
+                    <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=250&fit=crop" alt="Course" class="w-full h-40 sm:h-48 object-cover">
+                    <div class="absolute top-3 right-3 bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-bold">
+                        ₹6,999
+                    </div>
+                </div>
+                <div class="p-4 sm:p-5">
+                    <h3 class="text-base sm:text-lg font-bold text-gray-900 mb-2">Data Science & AI</h3>
+                    <p class="text-sm text-gray-600 mb-4 line-clamp-2">Python, Machine Learning, Deep Learning with real-world projects</p>
+                    
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-1">
+                            <i class="fas fa-star text-yellow-400 text-sm"></i>
+                            <span class="text-sm font-semibold text-gray-900">4.7</span>
+                            <span class="text-xs text-gray-500">(756)</span>
+                        </div>
+                        <span class="text-xs text-gray-500">
+                            <i class="far fa-clock"></i> 10 months
+                        </span>
+                    </div>
+                    
+                    <button onclick="enrollInCourse('course-datascience', 'Data Science & AI', 6999)" class="w-full bg-blue-600 text-white py-2.5 rounded-lg font-semibold hover:bg-blue-700 transition-all text-sm">
+                        Enroll Now
+                    </button>
+                </div>
+            </div>
+            
+        </div>
+    </main>
+    
+    <script src="js/dashboard.js"></script>
+</body>
+</html>

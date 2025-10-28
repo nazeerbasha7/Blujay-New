@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Learning - Blujay Technologies</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    
+    <style>
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            background: #f9fafb;
+        }
+        
+        /* ===== BLUJAY BRAND COLORS ===== */
+        :root {
+            --blujay-primary: #1D5D7F;
+            --blujay-primary-hover: #236192;
+            --blujay-light: #E8F4F8;
+        }
+        
+        .bg-blue-600 { background-color: var(--blujay-primary) !important; }
+        .hover\:bg-blue-700:hover { background-color: var(--blujay-primary-hover) !important; }
+        .text-blue-600 { color: var(--blujay-primary) !important; }
+        .border-blue-500 { border-color: var(--blujay-primary) !important; }
+        .bg-blue-100 { background-color: var(--blujay-light) !important; }
+        .hover\:bg-blue-50:hover { background-color: var(--blujay-light) !important; }
+        .focus\:ring-blue-500:focus { --tw-ring-color: var(--blujay-primary) !important; }
+        
+        /* Progress bar animation */
+        .progress-bar {
+            transition: width 0.3s ease;
+        }
+        
+        /* Certificate badge animation */
+        .certificate-badge {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+        
+        /* Empty state */
+        .empty-state {
+            min-height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+    
+    <!-- ===== NAVBAR ===== -->
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 lg:px-8">
+            <div class="flex justify-between items-center h-14 sm:h-16">
+                <a href="dashboard.html" class="flex items-center">
+                    <img src="logo.png" alt="Blujay" class="h-8 sm:h-10 w-auto">
+                </a>
+                
+                <!-- Desktop Search -->
+                <div class="hidden lg:flex flex-1 max-w-lg mx-8">
+                    <div class="relative w-full">
+                        <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                        <input type="text" placeholder="Search your courses..." class="w-full h-11 pl-12 pr-4 bg-gray-50 border-0 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-2 sm:gap-3">
+                    <!-- Desktop Doubt Solver -->
+                    <button class="hidden lg:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg text-sm font-semibold hover:shadow-lg transition-all">
+                        <i class="fas fa-question-circle"></i>
+                        <span>Doubt Solver</span>
+                    </button>
+                    
+                    <!-- Profile Dropdown -->
+                    <div class="relative">
+                        <button id="profile-btn" class="flex items-center gap-2 sm:gap-3 hover:bg-gray-50 px-2 sm:px-3 py-2 rounded-lg transition-all">
+                            <img id="user-photo" src="https://ui-avatars.com/api/?name=Student&background=1D5D7F&color=fff" alt="Profile" class="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover border-2 border-blue-500">
+                            <div class="hidden lg:block text-left">
+                                <p class="text-sm font-semibold text-gray-900 transition-opacity duration-300" id="user-name-header">Student</p>
+                                <p class="text-xs text-gray-500">Student</p>
+                            </div>
+                            <i class="fas fa-chevron-down text-xs text-gray-500 hidden lg:block"></i>
+                        </button>
+                        
+                        <!-- Dropdown Menu -->
+                        <div id="profile-dropdown" class="hidden absolute right-0 mt-2 w-60 sm:w-64 bg-white rounded-xl shadow-xl border border-gray-100 py-2 z-50">
+                            <div class="px-4 py-3 border-b border-gray-100">
+                                <p class="text-sm font-semibold text-gray-900" id="user-name-dropdown">Student</p>
+                                <p class="text-xs text-gray-500" id="user-email-dropdown">user@example.com</p>
+                            </div>
+                            
+                            <a href="dashboard.html" class="flex items-center gap-3 px-4 py-3 hover:bg-blue-50 transition-all">
+                                <div class="w-9 h-9 bg-blue-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-home text-blue-600"></i>
+                                </div>
+                                <span class="text-sm font-medium text-gray-700">Dashboard</span>
+                            </a>
+                            
+                            <a href="my-learning.html" class="flex items-center gap-3 px-4 py-3 bg-blue-50">
+                                <div class="w-9 h-9 bg-green-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-book text-green-600"></i>
+                                </div>
+                                <span class="text-sm font-medium text-gray-700">My Learning</span>
+                            </a>
+                            
+                            <div class="border-t border-gray-100 my-2"></div>
+                            
+                            <button id="logout-btn" class="w-full flex items-center gap-3 px-4 py-3 hover:bg-red-50 transition-all text-left">
+                                <div class="w-9 h-9 bg-red-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-sign-out-alt text-red-600"></i>
+                                </div>
+                                <span class="text-sm font-medium text-red-600">Logout</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Mobile Search Bar -->
+        <div class="lg:hidden px-4 pb-3">
+            <div class="relative">
+                <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                <input type="text" placeholder="Search your courses..." class="w-full h-10 pl-10 pr-4 bg-gray-50 border-0 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+        </div>
+    </header>
+    
+    <!-- ===== MAIN CONTENT ===== -->
+    <main class="max-w-7xl mx-auto px-4 lg:px-8 py-6 sm:py-8">
+        
+        <!-- Page Title -->
+        <div class="mb-6">
+            <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">My Learning</h1>
+            <p class="text-gray-600">Continue your learning journey and achieve your goals</p>
+        </div>
+        
+        <!-- Filter Tabs -->
+        <div class="flex gap-2 mb-6 overflow-x-auto pb-2">
+            <button data-filter="all" class="filter-btn px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold whitespace-nowrap">
+                All Courses
+            </button>
+            <button data-filter="in-progress" class="filter-btn px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-200 whitespace-nowrap">
+                In Progress
+            </button>
+            <button data-filter="completed" class="filter-btn px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-200 whitespace-nowrap">
+                Completed
+            </button>
+        </div>
+        
+        <!-- Course Grid -->
+        <div id="courses-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Courses will be loaded dynamically by JavaScript -->
+        </div>
+        
+        <!-- Empty State (Hidden by default) -->
+        <div id="empty-state" class="hidden empty-state flex-col items-center justify-center text-center">
+            <div class="w-32 h-32 bg-gray-100 rounded-full flex items-center justify-center mb-6">
+                <i class="fas fa-book text-gray-400 text-5xl"></i>
+            </div>
+            <h3 class="text-xl font-bold text-gray-900 mb-2">No courses enrolled yet</h3>
+            <p class="text-gray-600 mb-6">Start learning by enrolling in a course from our catalog</p>
+            <a href="dashboard.html" class="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-all">
+                Browse Courses
+            </a>
+        </div>
+        
+    </main>
+    
+    <script src="js/my-learning.js"></script>
+</body>
+</html>

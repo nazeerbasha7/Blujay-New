@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course Editor - Blujay Technologies</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/admin.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+    
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        body { margin: 0; padding: 0; background: #f9fafb; overflow-x: hidden; }
+        :root { --blujay-primary: #1D5D7F; --blujay-primary-hover: #236192; --blujay-light: #E8F4F8; }
+        .bg-blue-600 { background-color: var(--blujay-primary) !important; }
+        .hover\:bg-blue-700:hover { background-color: var(--blujay-primary-hover) !important; }
+        .text-blue-600 { color: var(--blujay-primary) !important; }
+        .border-blue-500 { border-color: var(--blujay-primary) !important; }
+        .bg-blue-100 { background-color: var(--blujay-light) !important; }
+        .hover\:bg-blue-50:hover { background-color: var(--blujay-light) !important; }
+        .profile-sidebar { position: fixed; top: 0; right: -100%; width: 100%; max-width: 480px; height: 100vh; background: white; box-shadow: -10px 0 30px rgba(0, 0, 0, 0.2); z-index: 9999; transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1); overflow-y: auto; }
+        .profile-sidebar.active { right: 0; }
+        .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background: rgba(0, 0, 0, 0.5); z-index: 9998; opacity: 0; visibility: hidden; transition: opacity 0.4s ease, visibility 0.4s ease; }
+        .sidebar-overlay.active { opacity: 1; visibility: visible; }
+        .photo-upload-wrapper { position: relative; cursor: pointer; }
+        .photo-upload-wrapper:hover .photo-overlay { opacity: 1; }
+        .photo-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); border-radius: 50%; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease; }
+        .interest-tag { display: inline-flex; align-items: center; gap: 8px; background: #E8F4F8; color: #1D5D7F; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 500; }
+        .interest-tag button { background: none; border: none; color: #1D5D7F; cursor: pointer; font-size: 16px; line-height: 1; }
+        .profile-sidebar::-webkit-scrollbar { width: 6px; }
+        .profile-sidebar::-webkit-scrollbar-track { background: #f1f1f1; }
+        .profile-sidebar::-webkit-scrollbar-thumb { background: #1D5D7F; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    
+    <div id="sidebar-overlay" class="sidebar-overlay"></div>
+    
+    <!-- Profile Sidebar (Same structure) -->
+    <div id="profile-sidebar" class="profile-sidebar">
+        <div class="sticky top-0 bg-white border-b border-gray-200 px-4 sm:px-6 py-4 flex items-center justify-between z-10">
+            <h2 class="text-lg sm:text-xl font-bold text-gray-900">Edit Profile</h2>
+            <button id="close-sidebar" class="w-10 h-10 flex items-center justify-center hover:bg-gray-100 rounded-full transition-all">
+                <i class="fas fa-times text-gray-600 text-xl"></i>
+            </button>
+        </div>
+        <div class="px-4 sm:px-6 py-6 space-y-6 sm:space-y-8">
+            <div class="text-center">
+                <h3 class="text-sm font-semibold text-gray-900 mb-4">Profile Photo</h3>
+                <div class="flex flex-col items-center gap-4">
+                    <div class="photo-upload-wrapper">
+                        <img id="sidebar-photo" src="https://ui-avatars.com/api/?name=Admin&background=1D5D7F&color=fff" alt="Profile" class="w-28 h-28 sm:w-32 sm:h-32 rounded-full object-cover border-4 border-blue-500">
+                        <div class="photo-overlay"><i class="fas fa-camera text-white text-2xl"></i></div>
+                        <input type="file" id="photo-upload" accept="image/*" class="hidden">
+                    </div>
+                    <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                        <button id="upload-photo-btn" class="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-all"><i class="fas fa-upload mr-2"></i>Upload Photo</button>
+                        <button id="remove-photo-btn" class="px-4 py-2 bg-gray-100 text-gray-700 text-sm font-semibold rounded-lg hover:bg-gray-200 transition-all"><i class="fas fa-trash mr-2"></i>Remove</button>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <h3 class="text-sm font-semibold text-gray-900 mb-4">Personal Information</h3>
+                <div class="space-y-4">
+                    <div><label class="block text-sm font-medium text-gray-700 mb-2">Full Name</label><input type="text" id="edit-name" placeholder="Enter your name" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"></div>
+                    <div><label class="block text-sm font-medium text-gray-700 mb-2">Email</label><input type="email" id="edit-email" readonly class="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 cursor-not-allowed text-sm sm:text-base"><p class="text-xs text-gray-500 mt-1">Email cannot be changed</p></div>
+                    <div><label class="block text-sm font-medium text-gray-700 mb-2">Phone Number</label><input type="tel" id="edit-phone" placeholder="+91 9876543210" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"></div>
+                </div>
+            </div>
+            <div><h3 class="text-sm font-semibold text-gray-900 mb-4">About</h3><textarea id="edit-bio" rows="4" placeholder="Tell us about yourself..." maxlength="200" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 resize-none text-sm sm:text-base"></textarea><p class="text-xs text-gray-500 mt-1"><span id="bio-count">0</span>/200 characters</p></div>
+            <div><h3 class="text-sm font-semibold text-gray-900 mb-4">Interests & Skills</h3><div id="interests-container" class="flex flex-wrap gap-2 mb-3 min-h-[40px]"></div><div class="flex gap-2"><input type="text" id="new-interest" placeholder="Add a skill" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"><button id="add-interest-btn" class="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-all"><i class="fas fa-plus"></i></button></div></div>
+            <div><h3 class="text-sm font-semibold text-gray-900 mb-4">Social Links</h3><div class="space-y-3"><div class="flex items-center gap-3"><i class="fab fa-linkedin text-blue-600 text-xl w-6"></i><input type="url" id="edit-linkedin" placeholder="https://linkedin.com/in/username" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-xs sm:text-sm"></div><div class="flex items-center gap-3"><i class="fab fa-github text-gray-900 text-xl w-6"></i><input type="url" id="edit-github" placeholder="https://github.com/username" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-xs sm:text-sm"></div><div class="flex items-center gap-3"><i class="fas fa-globe text-green-600 text-xl w-6"></i><input type="url" id="edit-portfolio" placeholder="https://yourportfolio.com" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-xs sm:text-sm"></div></div></div>
+            <div class="sticky bottom-0 bg-white pt-4 pb-6 space-y-3">
+                <button id="save-profile-btn" class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-all shadow-md text-sm sm:text-base"><i class="fas fa-save mr-2"></i>Save Changes</button>
+                <button id="sidebar-logout-btn" class="w-full bg-red-50 text-red-600 py-3 rounded-lg font-semibold hover:bg-red-100 transition-all text-sm sm:text-base"><i class="fas fa-sign-out-alt mr-2"></i>Logout</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Admin Header (Same as admin-courses.html) -->
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 lg:px-8">
+            <div class="flex justify-between items-center h-14 sm:h-16">
+                <div class="flex items-center gap-3">
+                    <a href="admin-dashboard.html" class="flex items-center">
+                        <img src="../logo.png" alt="Blujay" class="h-8 sm:h-10 w-auto">
+                    </a>
+                    <span class="hidden sm:inline-block px-2 py-1 bg-red-100 text-red-600 text-xs font-bold rounded">ADMIN</span>
+                </div>
+                <div class="flex items-center gap-2 sm:gap-3">
+                    <div class="relative">
+                        <button id="profile-btn" class="flex items-center gap-2 sm:gap-3 hover:bg-gray-50 px-2 sm:px-3 py-2 rounded-lg transition-all">
+                            <img id="user-photo" src="https://ui-avatars.com/api/?name=Admin&background=1D5D7F&color=fff" alt="Profile" class="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover border-2 border-blue-500">
+                            <div class="hidden lg:block text-left">
+                                <p class="text-sm font-semibold text-gray-900" id="user-name-header">Admin</p>
+                                <p class="text-xs text-gray-500">Administrator</p>
+                            </div>
+                            <i class="fas fa-chevron-down text-xs text-gray-500 hidden lg:block"></i>
+                        </button>
+                        <div id="profile-dropdown" class="hidden absolute right-0 mt-2 w-72 bg-white rounded-xl shadow-xl border border-gray-100 py-2 z-50">
+                            <div class="px-4 py-3 border-b border-gray-100">
+                                <p class="text-sm font-semibold text-gray-900" id="user-name-dropdown">Admin</p>
+                                <p class="text-xs text-gray-500" id="user-email-dropdown">admin@blujay.com</p>
+                                <span class="inline-block mt-1 px-2 py-0.5 bg-red-100 text-red-600 text-xs font-bold rounded">Administrator</span>
+                            </div>
+                            <button id="open-profile-btn" class="w-full flex items-center gap-3 px-4 py-3 hover:bg-blue-50 transition-all text-left"><div class="w-9 h-9 bg-blue-100 rounded-lg flex items-center justify-center"><i class="fas fa-user text-blue-600"></i></div><span class="text-sm font-medium text-gray-700">My Profile</span></button>
+                            <div class="border-t border-gray-100 my-2"></div>
+                            <div class="px-4 py-1"><p class="text-xs font-semibold text-gray-500 uppercase">Admin Panel</p></div>
+                            <a href="admin-dashboard.html" class="flex items-center gap-3 px-4 py-2.5 hover:bg-blue-50 transition-all"><i class="fas fa-home text-gray-600 w-5"></i><span class="text-sm font-medium text-gray-700">Dashboard</span></a>
+                            <a href="admin-courses.html" class="flex items-center gap-3 px-4 py-2.5 hover:bg-blue-50 transition-all"><i class="fas fa-book text-gray-600 w-5"></i><span class="text-sm font-medium text-gray-700">Manage Courses</span></a>
+                            <a href="admin-course-editor.html" class="flex items-center gap-3 px-4 py-2.5 hover:bg-blue-50 transition-all"><i class="fas fa-plus-circle text-gray-600 w-5"></i><span class="text-sm font-medium text-gray-700">Add New Course</span></a>
+                            <a href="admin-curriculum.html" class="flex items-center gap-3 px-4 py-2.5 hover:bg-blue-50 transition-all"><i class="fas fa-video text-gray-600 w-5"></i><span class="text-sm font-medium text-gray-700">Build Curriculum</span></a>
+                            <div class="border-t border-gray-100 my-2"></div>
+                            <div class="px-4 py-1"><p class="text-xs font-semibold text-gray-500 uppercase">Student View</p></div>
+                            <a href="../dashboard.html" class="flex items-center gap-3 px-4 py-2.5 hover:bg-blue-50 transition-all"><i class="fas fa-user-graduate text-gray-600 w-5"></i><span class="text-sm font-medium text-gray-700">Student Dashboard</span></a>
+                            <a href="../my-learning.html" class="flex items-center gap-3 px-4 py-2.5 hover:bg-blue-50 transition-all"><i class="fas fa-book-reader text-gray-600 w-5"></i><span class="text-sm font-medium text-gray-700">My Learning</span></a>
+                            <div class="border-t border-gray-100 my-2"></div>
+                            <button id="logout-btn" class="w-full flex items-center gap-3 px-4 py-3 hover:bg-red-50 transition-all text-left"><div class="w-9 h-9 bg-red-100 rounded-lg flex items-center justify-center"><i class="fas fa-sign-out-alt text-red-600"></i></div><span class="text-sm font-medium text-red-600">Logout</span></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Main Content (Keep your existing form) -->
+    <main class="max-w-7xl mx-auto px-4 lg:px-8 py-6">
+        <div class="max-w-4xl">
+            <div class="mb-6">
+                <h2 class="text-xl font-bold text-gray-800" id="page-title">Add New Course</h2>
+                <p class="text-sm text-gray-500">Fill in the course details</p>
+            </div>
+            
+            <form id="course-form" class="space-y-6">
+                <!-- Your existing form content stays exactly the same -->
+                <div class="bg-white rounded-xl shadow-sm p-6">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">Basic Information</h3>
+                    <div class="space-y-4">
+                        <div><label class="block text-sm font-medium text-gray-700 mb-2">Course Title <span class="text-red-500">*</span></label><input type="text" id="course-title" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="e.g., MERN Full Stack Development" required></div>
+                        <div><label class="block text-sm font-medium text-gray-700 mb-2">Short Description <span class="text-red-500">*</span></label><textarea id="course-description" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Brief description of the course (max 200 characters)" maxlength="200" required></textarea><p class="text-xs text-gray-500 mt-1"><span id="desc-count">0</span>/200 characters</p></div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div><label class="block text-sm font-medium text-gray-700 mb-2">Category <span class="text-red-500">*</span></label><select id="course-category" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required><option value="">Select category</option><option value="full-stack">Full Stack Development</option><option value="data-science">Data Science & AI</option><option value="cybersecurity">Cyber Security</option><option value="mobile-dev">Mobile Development</option><option value="cloud">Cloud Computing</option></select></div>
+                            <div><label class="block text-sm font-medium text-gray-700 mb-2">Level <span class="text-red-500">*</span></label><select id="course-level" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required><option value="">Select level</option><option value="beginner">Beginner</option><option value="intermediate">Intermediate</option><option value="advanced">Advanced</option></select></div>
+                        </div>
+                        <div><label class="block text-sm font-medium text-gray-700 mb-2">Instructor Name <span class="text-red-500">*</span></label><input type="text" id="instructor-name" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="e.g., John Doe" required></div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl shadow-sm p-6">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">Pricing</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div><label class="block text-sm font-medium text-gray-700 mb-2">Regular Price (₹) <span class="text-red-500">*</span></label><input type="number" id="course-price" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="e.g., 4999" min="0" required></div>
+                        <div><label class="block text-sm font-medium text-gray-700 mb-2">Discounted Price (₹)</label><input type="number" id="course-discount-price" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="e.g., 3999" min="0"></div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl shadow-sm p-6">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">Course Details</h3>
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div><label class="block text-sm font-medium text-gray-700 mb-2">Duration</label><input type="text" id="course-duration" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="e.g., 8 months"></div>
+                            <div><label class="block text-sm font-medium text-gray-700 mb-2">Language</label><select id="course-language" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"><option value="english">English</option><option value="hindi">Hindi</option><option value="both">English & Hindi</option></select></div>
+                        </div>
+                        <div><label class="block text-sm font-medium text-gray-700 mb-2">Course Thumbnail URL</label><input type="url" id="course-thumbnail" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="https://example.com/thumbnail.jpg"><p class="text-xs text-gray-500 mt-1">Recommended size: 800x450px</p></div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl shadow-sm p-6">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">Course Status</h3>
+                    <div><label class="block text-sm font-medium text-gray-700 mb-2">Status</label><select id="course-status" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"><option value="draft">Draft</option><option value="published">Published</option><option value="archived">Archived</option></select><p class="text-xs text-gray-500 mt-2"><i class="fas fa-info-circle mr-1"></i>Draft courses are not visible to students</p></div>
+                </div>
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <button type="submit" id="save-btn" class="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 font-semibold transition-all"><i class="fas fa-save mr-2"></i><span id="save-text">Save Course</span></button>
+                    <button type="button" onclick="window.location.href='admin-courses.html'" class="flex-1 px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 font-semibold transition-all"><i class="fas fa-times mr-2"></i>Cancel</button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCiedANEie5u-2XQOjdsUFgdkE7s08gArY",
+            authDomain: "blujay-tech.firebaseapp.com",
+            projectId: "blujay-tech",
+            storageBucket: "blujay-tech.firebasestorage.app",
+            messagingSenderId: "586422050005",
+            appId: "1:586422050005:web:737ba2502d1b283ea6165c"
+        };
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+    </script>
+    <script src="../js/admin/admin-navbar.js"></script>
+    <script src="../js/admin/admin-course-editor.js"></script>
+</body>
+</html>
